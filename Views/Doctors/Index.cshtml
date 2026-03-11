@@ -1,0 +1,49 @@
+﻿@model IEnumerable<DoctorViewModel>
+@{
+    ViewData["Title"] = "Danh sách bác sĩ";
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="Index">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Tìm theo tên bác sĩ</label>
+                    <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control" placeholder="Nhập tên bác sĩ..." />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Lọc theo chuyên khoa</label>
+                    <select name="specialtyId" asp-items="ViewBag.SpecialtyId" class="form-select">
+                        <option value="">-- Tất cả chuyên khoa --</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-4">
+    @foreach (var doctor in Model)
+    {
+        <div class="col-md-6 col-lg-4">
+            <div class="card doctor-card h-100 border-0 shadow-sm">
+                <img src="@(string.IsNullOrWhiteSpace(doctor.ImageUrl) ? "https://via.placeholder.com/500x350?text=Doctor" : doctor.ImageUrl)"
+                     class="card-img-top" alt="@doctor.FullName" />
+                <div class="card-body">
+                    <h5 class="card-title">@doctor.FullName</h5>
+                    <div class="text-primary fw-semibold mb-2">@doctor.SpecialtyName</div>
+                    <p><i class="bi bi-award me-1"></i>@doctor.ExperienceYears năm kinh nghiệm</p>
+                    <p class="text-muted">@(doctor.Description?.Length > 100 ? doctor.Description.Substring(0, 100) + "..." : doctor.Description)</p>
+
+                    <div class="d-flex gap-2">
+                        <a asp-action="Details" asp-route-id="@doctor.DoctorId" class="btn btn-outline-primary btn-sm">Xem chi tiết</a>
+                        <a asp-controller="Appointments" asp-action="Create" class="btn btn-primary btn-sm">Đặt lịch</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

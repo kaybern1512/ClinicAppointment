@@ -1,0 +1,28 @@
+﻿@model ClinicBookingMVC.ViewModels.Admin.AdminAppointmentDetailsViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Chi tiết lịch hẹn";
+}
+
+<div class="admin-details-card">
+    <h4 class="mb-4">Chi tiết lịch hẹn</h4>
+
+    <div class="row g-3">
+        <div class="col-md-6"><strong>Mã lịch hẹn:</strong> #@Model.AppointmentId</div>
+        <div class="col-md-6"><strong>Bệnh nhân:</strong> @Model.PatientName</div>
+        <div class="col-md-6"><strong>Số điện thoại:</strong> @Model.PhoneNumber</div>
+        <div class="col-md-6"><strong>Email:</strong> @Model.Email</div>
+        <div class="col-md-6"><strong>Bác sĩ:</strong> @Model.DoctorName</div>
+        <div class="col-md-6"><strong>Chuyên khoa:</strong> @Model.SpecialtyName</div>
+        <div class="col-md-6"><strong>Ngày khám:</strong> @Model.AppointmentDate.ToString("dd/MM/yyyy")</div>
+        <div class="col-md-6"><strong>Giờ khám:</strong> @Model.AppointmentTime.ToString("HH:mm")</div>
+        <div class="col-md-6"><strong>Trạng thái:</strong> @Model.StatusName</div>
+        <div class="col-md-6"><strong>Ngày tạo:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+        <div class="col-12"><strong>Triệu chứng:</strong> @Model.Symptoms</div>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+        <a asp-action="EditStatus" asp-route-id="@Model.AppointmentId" class="btn btn-primary">Cập nhật trạng thái</a>
+        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+    </div>
+</div>

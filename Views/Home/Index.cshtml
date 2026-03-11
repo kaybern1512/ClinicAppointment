@@ -1,0 +1,116 @@
+﻿@model HomeViewModel
+@{
+    ViewData["Title"] = "Trang chủ";
+}
+
+<section class="hero-section rounded-4 p-5 mb-5">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <span class="badge bg-light text-primary mb-3">Phòng khám hiện đại</span>
+            <h1 class="display-5 fw-bold mb-3">Đặt lịch khám bệnh nhanh chóng và tiện lợi</h1>
+            <p class="lead text-muted mb-4">
+                Kết nối với bác sĩ phù hợp, chọn chuyên khoa nhanh chóng và theo dõi lịch hẹn dễ dàng.
+            </p>
+            <div class="d-flex gap-3 flex-wrap">
+                <a class="btn btn-primary btn-lg" asp-controller="Appointments" asp-action="Create">Đặt lịch ngay</a>
+                <a class="btn btn-outline-primary btn-lg" asp-controller="Doctors" asp-action="Index">Xem bác sĩ</a>
+            </div>
+        </div>
+        <div class="col-lg-5 text-center">
+            <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1200&auto=format&fit=crop"
+                 class="img-fluid rounded-4 shadow" alt="Clinic banner" />
+        </div>
+    </div>
+</section>
+
+<section class="mb-5">
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="feature-box h-100">
+                <i class="bi bi-patch-check"></i>
+                <h5>Uy tín</h5>
+                <p>Dịch vụ chuyên nghiệp, thông tin rõ ràng, trải nghiệm an tâm.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-box h-100">
+                <i class="bi bi-person-badge"></i>
+                <h5>Bác sĩ giàu kinh nghiệm</h5>
+                <p>Đội ngũ bác sĩ có chuyên môn cao và tận tâm với người bệnh.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-box h-100">
+                <i class="bi bi-calendar-check"></i>
+                <h5>Đặt lịch nhanh</h5>
+                <p>Đặt lịch chỉ với vài bước đơn giản, thuận tiện mọi lúc.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-box h-100">
+                <i class="bi bi-grid"></i>
+                <h5>Nhiều chuyên khoa</h5>
+                <p>Đáp ứng đa dạng nhu cầu khám bệnh của người dùng.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mb-5">
+    <div class="section-title-wrap">
+        <h2 class="section-title">Chuyên khoa nổi bật</h2>
+        <a asp-controller="Specialties" asp-action="Index" class="btn btn-outline-primary">Xem tất cả</a>
+    </div>
+    <div class="row g-4">
+        @foreach (var item in Model.FeaturedSpecialties)
+        {
+            <div class="col-md-6 col-lg-3">
+                <div class="card specialty-card h-100 border-0 shadow-sm">
+                    <img src="@(string.IsNullOrWhiteSpace(item.ImageUrl) ? "https://via.placeholder.com/400x250?text=Specialty" : item.ImageUrl)"
+                         class="card-img-top" alt="@item.SpecialtyName" />
+                    <div class="card-body">
+                        <h5 class="card-title">@item.SpecialtyName</h5>
+                        <p class="card-text text-muted">@item.Description</p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="mb-5">
+    <div class="section-title-wrap">
+        <h2 class="section-title">Bác sĩ nổi bật</h2>
+        <a asp-controller="Doctors" asp-action="Index" class="btn btn-outline-primary">Xem tất cả</a>
+    </div>
+    <div class="row g-4">
+        @foreach (var doctor in Model.FeaturedDoctors)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card doctor-card h-100 border-0 shadow-sm">
+                    <img src="@(string.IsNullOrWhiteSpace(doctor.ImageUrl) ? "https://via.placeholder.com/500x350?text=Doctor" : doctor.ImageUrl)"
+                         class="card-img-top" alt="@doctor.FullName" />
+                    <div class="card-body">
+                        <h5 class="card-title">@doctor.FullName</h5>
+                        <div class="small text-primary fw-semibold mb-2">@doctor.SpecialtyName</div>
+                        <p class="mb-2"><i class="bi bi-award me-1"></i> @doctor.ExperienceYears năm kinh nghiệm</p>
+                        <p class="text-muted">@doctor.Description</p>
+                        <a asp-controller="Doctors" asp-action="Details" asp-route-id="@doctor.DoctorId" class="btn btn-primary btn-sm">
+                            Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="mb-5">
+    <h2 class="section-title mb-4">Quy trình đặt lịch 4 bước</h2>
+    <div class="row g-4">
+        <div class="col-md-3"><div class="step-box">1. Chọn chuyên khoa</div></div>
+        <div class="col-md-3"><div class="step-box">2. Chọn bác sĩ</div></div>
+        <div class="col-md-3"><div class="step-box">3. Điền thông tin khám</div></div>
+        <div class="col-md-3"><div class="step-box">4. Xác nhận lịch hẹn</div></div>
+    </div>
+</section>

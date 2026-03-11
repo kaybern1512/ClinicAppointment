@@ -1,0 +1,131 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f5f7fb;
+    color: #1f2937;
+}
+
+.clinic-navbar {
+    background: linear-gradient(90deg, #0d6efd, #1f75ff);
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #eaf3ff, #ffffff);
+    border: 1px solid #e5e7eb;
+}
+
+.section-title {
+    font-weight: 700;
+    color: #0d3b8e;
+}
+
+.section-title-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.feature-box {
+    background: #ffffff;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    text-align: center;
+}
+
+    .feature-box i {
+        font-size: 2rem;
+        color: #0d6efd;
+        margin-bottom: 1rem;
+    }
+
+.doctor-card,
+.specialty-card,
+.appointment-form-card {
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+    .doctor-card img,
+    .specialty-card img {
+        height: 220px;
+        object-fit: cover;
+    }
+
+    .doctor-card:hover,
+    .specialty-card:hover {
+        transform: translateY(-4px);
+        transition: 0.25s ease;
+    }
+
+.step-box {
+    background: #ffffff;
+    border-left: 4px solid #0d6efd;
+    padding: 1.25rem;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    font-weight: 600;
+}
+
+.map-placeholder {
+    height: 250px;
+    border-radius: 16px;
+    background: repeating-linear-gradient( 45deg, #e9ecef, #e9ecef 10px, #f8f9fa 10px, #f8f9fa 20px );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.appointment-table thead th {
+    background-color: #eef4ff;
+    color: #0d3b8e;
+    border-bottom: none;
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+}
+
+.btn {
+    border-radius: 10px;
+}
+
+.form-control,
+.form-select {
+    border-radius: 10px;
+    padding: 0.75rem 0.9rem;
+}
+
+.card {
+    border-radius: 18px;
+}
+
+.clinic-footer {
+    background-color: #0f172a;
+    color: #ffffff;
+    padding: 3rem 0 2rem;
+}
+
+    .clinic-footer h5 {
+        margin-bottom: 1rem;
+    }
+
+    .clinic-footer p {
+        color: #cbd5e1;
+        margin-bottom: 0.5rem;
+    }
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem !important;
+    }
+
+    .section-title-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}

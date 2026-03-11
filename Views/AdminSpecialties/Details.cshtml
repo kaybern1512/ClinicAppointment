@@ -1,0 +1,26 @@
+﻿@model ClinicBookingMVC.ViewModels.Admin.AdminSpecialtyListItemViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Chi tiết chuyên khoa";
+}
+
+<div class="admin-details-card">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <img src="@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "https://via.placeholder.com/500x350?text=Specialty" : Model.ImageUrl)"
+                 class="img-fluid rounded-4 shadow-sm" />
+        </div>
+        <div class="col-md-8">
+            <h3>@Model.SpecialtyName</h3>
+            <p><strong>ID:</strong> @Model.SpecialtyId</p>
+            <p><strong>Icon:</strong> @Model.Icon</p>
+            <p><strong>Nổi bật:</strong> @(Model.IsFeatured ? "Có" : "Không")</p>
+            <p><strong>Mô tả:</strong> @Model.Description</p>
+
+            <div class="mt-4 d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.SpecialtyId" class="btn btn-primary">Chỉnh sửa</a>
+                <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+            </div>
+        </div>
+    </div>
+</div>

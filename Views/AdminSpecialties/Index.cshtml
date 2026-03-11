@@ -1,0 +1,56 @@
+﻿@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminSpecialtyListItemViewModel>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý chuyên khoa";
+}
+
+<div class="admin-section-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Danh sách chuyên khoa</h5>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Thêm mới
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên chuyên khoa</th>
+                    <th>Mô tả</th>
+                    <th>Icon</th>
+                    <th>Ảnh</th>
+                    <th>Nổi bật</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.SpecialtyId</td>
+                        <td>@item.SpecialtyName</td>
+                        <td>@(string.IsNullOrWhiteSpace(item.Description) ? "-" : (item.Description.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description))</td>
+                        <td>@item.Icon</td>
+                        <td>
+                            <img src="@(string.IsNullOrWhiteSpace(item.ImageUrl) ? "https://via.placeholder.com/60x60?text=Sp" : item.ImageUrl)"
+                                 class="admin-thumb" />
+                        </td>
+                        <td>
+                            <span class="badge @(item.IsFeatured ? "bg-primary" : "bg-light text-dark")">
+                                @(item.IsFeatured ? "Featured" : "Normal")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a asp-action="Details" asp-route-id="@item.SpecialtyId" class="btn btn-outline-secondary btn-sm">Chi tiết</a>
+                                <a asp-action="Edit" asp-route-id="@item.SpecialtyId" class="btn btn-primary btn-sm">Sửa</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,39 @@
+﻿@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminContactListItemViewModel>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Tin nhắn liên hệ";
+}
+
+<div class="admin-section-card">
+    <h5 class="mb-3">Danh sách tin nhắn liên hệ</h5>
+
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>Nội dung rút gọn</th>
+                    <th>Ngày gửi</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.ContactMessageId</td>
+                        <td>@item.FullName</td>
+                        <td>@item.Email</td>
+                        <td>@item.MessagePreview</td>
+                        <td>@item.SentAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.ContactMessageId" class="btn btn-outline-primary btn-sm">Chi tiết</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

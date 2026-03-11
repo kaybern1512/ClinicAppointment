@@ -1,0 +1,55 @@
+﻿@model IEnumerable<AppointmentListItemViewModel>
+@{
+    ViewData["Title"] = "Lịch hẹn của tôi";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h2 class="mb-4">Lịch hẹn của tôi</h2>
+
+        <div class="table-responsive">
+            <table class="table align-middle appointment-table">
+                <thead>
+                    <tr>
+                        <th>Mã lịch hẹn</th>
+                        <th>Bệnh nhân</th>
+                        <th>Bác sĩ</th>
+                        <th>Chuyên khoa</th>
+                        <th>Ngày khám</th>
+                        <th>Giờ khám</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        string badgeClass = item.StatusName switch
+                        {
+                            "Pending" => "badge bg-warning text-dark",
+                            "Confirmed" => "badge bg-success",
+                            "Completed" => "badge bg-primary",
+                            "Cancelled" => "badge bg-danger",
+                            _ => "badge bg-secondary"
+                        };
+
+                        <tr>
+                            <td>#@item.AppointmentId</td>
+                            <td>@item.PatientName</td>
+                            <td>@item.DoctorName</td>
+                            <td>@item.SpecialtyName</td>
+                            <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                            <td>@item.AppointmentTime.ToString(@"hh\:mm")</td>
+                            <td><span class="@badgeClass">@item.StatusName</span></td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@item.AppointmentId" class="btn btn-outline-primary btn-sm">
+                                    Xem chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

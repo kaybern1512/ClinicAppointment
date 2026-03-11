@@ -1,0 +1,27 @@
+﻿@model AppointmentDetailsViewModel
+@{
+    ViewData["Title"] = "Chi tiết lịch hẹn";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h2 class="mb-4">Chi tiết lịch hẹn</h2>
+
+        <div class="row g-3">
+            <div class="col-md-6"><strong>Mã lịch hẹn:</strong> #@Model.AppointmentId</div>
+            <div class="col-md-6"><strong>Bệnh nhân:</strong> @Model.PatientName</div>
+            <div class="col-md-6"><strong>Số điện thoại:</strong> @Model.PhoneNumber</div>
+            <div class="col-md-6"><strong>Email:</strong> @Model.Email</div>
+            <div class="col-md-6"><strong>Bác sĩ:</strong> @Model.DoctorName</div>
+            <div class="col-md-6"><strong>Chuyên khoa:</strong> @Model.SpecialtyName</div>
+            <div class="col-md-6"><strong>Ngày khám:</strong> @Model.AppointmentDate.ToString("dd/MM/yyyy")</div>
+            <div class="col-md-6"><strong>Giờ khám:</strong> @Model.AppointmentTime.ToString(@"hh\:mm")</div>
+            <div class="col-md-6"><strong>Trạng thái:</strong> @Model.StatusName</div>
+            <div class="col-12"><strong>Triệu chứng:</strong> @Model.Symptoms</div>
+        </div>
+
+        <div class="mt-4">
+            <a asp-action="MyAppointments" class="btn btn-outline-secondary">Quay lại</a>
+        </div>
+    </div>
+</div>

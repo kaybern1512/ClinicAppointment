@@ -1,0 +1,27 @@
+﻿@model DoctorViewModel
+@{
+    ViewData["Title"] = "Chi tiết bác sĩ";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <img src="@(string.IsNullOrWhiteSpace(Model.ImageUrl) ? "https://via.placeholder.com/500x500?text=Doctor" : Model.ImageUrl)"
+                     class="img-fluid rounded-4 shadow-sm" alt="@Model.FullName" />
+            </div>
+            <div class="col-md-8">
+                <h2>@Model.FullName</h2>
+                <p class="text-primary fw-semibold mb-2">@Model.SpecialtyName</p>
+                <p><strong>Kinh nghiệm:</strong> @Model.ExperienceYears năm</p>
+                <p><strong>Lịch làm việc:</strong> @Model.WorkingTime</p>
+                <p><strong>Mô tả:</strong> @Model.Description</p>
+
+                <div class="mt-4 d-flex gap-2">
+                    <a asp-controller="Appointments" asp-action="Create" class="btn btn-primary">Đặt lịch</a>
+                    <a asp-controller="Doctors" asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

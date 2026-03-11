@@ -1,0 +1,56 @@
+﻿@model ClinicBookingMVC.ViewModels.Admin.AdminUserDetailsViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Chi tiết người dùng";
+}
+
+<div class="admin-details-card mb-4">
+    <h4 class="mb-4">Thông tin người dùng</h4>
+
+    <div class="row g-3">
+        <div class="col-md-6"><strong>Họ tên:</strong> @Model.FullName</div>
+        <div class="col-md-6"><strong>Email:</strong> @Model.Email</div>
+        <div class="col-md-6"><strong>Số điện thoại:</strong> @Model.PhoneNumber</div>
+        <div class="col-md-6"><strong>Vai trò:</strong> @Model.RoleName</div>
+        <div class="col-md-6"><strong>Trạng thái:</strong> @(Model.IsActive ? "Active" : "Inactive")</div>
+        <div class="col-md-6"><strong>Ngày tạo:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+    </div>
+</div>
+
+<div class="admin-section-card">
+    <h5 class="mb-3">Lịch hẹn liên quan</h5>
+
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Bệnh nhân</th>
+                    <th>Bác sĩ</th>
+                    <th>Chuyên khoa</th>
+                    <th>Ngày khám</th>
+                    <th>Giờ khám</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Appointments)
+                {
+                    <tr>
+                        <td>#@item.AppointmentId</td>
+                        <td>@item.PatientName</td>
+                        <td>@item.DoctorName</td>
+                        <td>@item.SpecialtyName</td>
+                        <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                        <td>@item.AppointmentTime.ToString("HH:mm")</td>
+                        <td>@item.StatusName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+    </div>
+</div>

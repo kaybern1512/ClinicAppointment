@@ -1,0 +1,74 @@
+﻿@model ClinicBookingMVC.ViewModels.Admin.AdminDoctorCreateViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Thêm bác sĩ";
+}
+
+<div class="admin-form-card">
+    <h4 class="mb-4">Thêm bác sĩ</h4>
+
+    <form asp-action="Create" method="post">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="SpecialtyId" class="form-label"></label>
+                <select asp-for="SpecialtyId" asp-items="Model.Specialties" class="form-select">
+                    <option value="">-- Chọn chuyên khoa --</option>
+                </select>
+                <span asp-validation-for="SpecialtyId" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="ExperienceYears" class="form-label"></label>
+                <input asp-for="ExperienceYears" class="form-control" />
+                <span asp-validation-for="ExperienceYears" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="ImageUrl" class="form-label"></label>
+                <input asp-for="ImageUrl" class="form-control" />
+                <span asp-validation-for="ImageUrl" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="WorkingTime" class="form-label"></label>
+                <input asp-for="WorkingTime" class="form-control" />
+                <span asp-validation-for="WorkingTime" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-check mt-4">
+                    <input asp-for="IsFeatured" class="form-check-input" />
+                    <label asp-for="IsFeatured" class="form-check-label"></label>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-check mt-4">
+                    <input asp-for="IsActive" class="form-check-input" />
+                    <label asp-for="IsActive" class="form-check-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Lưu</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,25 @@
+﻿@model IEnumerable<SpecialtyViewModel>
+@{
+    ViewData["Title"] = "Chuyên khoa";
+}
+
+<h2 class="section-title mb-4">Danh sách chuyên khoa</h2>
+
+<div class="row g-4">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-6 col-lg-4">
+            <div class="card specialty-card h-100 border-0 shadow-sm">
+                <img src="@(string.IsNullOrWhiteSpace(item.ImageUrl) ? "https://via.placeholder.com/500x300?text=Specialty" : item.ImageUrl)"
+                     class="card-img-top" alt="@item.SpecialtyName" />
+                <div class="card-body">
+                    <h5 class="card-title">@item.SpecialtyName</h5>
+                    <p class="text-muted">@item.Description</p>
+                    <a asp-controller="Doctors" asp-action="Index" asp-route-specialtyId="@item.SpecialtyId" class="btn btn-primary btn-sm">
+                        Xem bác sĩ liên quan
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>

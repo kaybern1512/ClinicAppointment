@@ -1,0 +1,150 @@
+﻿@model ClinicBookingMVC.ViewModels.Admin.AdminDashboardViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-primary"><i class="bi bi-person-badge"></i></div>
+            <div>
+                <div class="stat-label">Tổng bác sĩ</div>
+                <div class="stat-value">@Model.TotalDoctors</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-success"><i class="bi bi-list-task"></i></div>
+            <div>
+                <div class="stat-label">Tổng chuyên khoa</div>
+                <div class="stat-value">@Model.TotalSpecialties</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-warning text-dark"><i class="bi bi-calendar-check"></i></div>
+            <div>
+                <div class="stat-label">Tổng lịch hẹn</div>
+                <div class="stat-value">@Model.TotalAppointments</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-info text-dark"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="stat-label">Tổng người dùng</div>
+                <div class="stat-value">@Model.TotalUsers</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="mini-status-card warning">Pending: <strong>@Model.PendingAppointments</strong></div>
+    </div>
+    <div class="col-md-3">
+        <div class="mini-status-card primary">Confirmed: <strong>@Model.ConfirmedAppointments</strong></div>
+    </div>
+    <div class="col-md-3">
+        <div class="mini-status-card secondary">Completed: <strong>@Model.CompletedAppointments</strong></div>
+    </div>
+    <div class="col-md-3">
+        <div class="mini-status-card danger">Cancelled: <strong>@Model.CancelledAppointments</strong></div>
+    </div>
+</div>
+
+<div class="admin-section-card mb-4">
+    <div class="d-flex flex-wrap gap-2">
+        <a asp-controller="AdminDoctors" asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Thêm bác sĩ
+        </a>
+        <a asp-controller="AdminSpecialties" asp-action="Create" class="btn btn-outline-primary">
+            <i class="bi bi-plus-circle me-1"></i> Thêm chuyên khoa
+        </a>
+        <a asp-controller="AdminAppointments" asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-calendar3 me-1"></i> Xem lịch hẹn
+        </a>
+        <a asp-controller="AdminUsers" asp-action="Index" class="btn btn-outline-dark">
+            <i class="bi bi-people me-1"></i> Quản lý người dùng
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="admin-section-card">
+            <h5 class="mb-3">Lịch hẹn gần đây</h5>
+            <div class="table-responsive">
+                <table class="table admin-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Mã</th>
+                            <th>Bệnh nhân</th>
+                            <th>Bác sĩ</th>
+                            <th>Ngày khám</th>
+                            <th>Giờ</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.RecentAppointments)
+                        {
+                            <tr>
+                                <td>#@item.AppointmentId</td>
+                                <td>@item.PatientName</td>
+                                <td>@item.DoctorName</td>
+                                <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                                <td>@item.AppointmentTime.ToString("HH:mm")</td>
+                                <td>
+                                    <span class="@GetStatusBadge(item.StatusName)">@item.StatusName</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-section-card mb-4">
+            <h5 class="mb-3">Bác sĩ nổi bật</h5>
+            @foreach (var doctor in Model.FeaturedDoctors)
+            {
+                <div class="featured-doctor-item">
+                    <div>
+                        <div class="fw-semibold">@doctor.FullName</div>
+                        <div class="text-muted small">@doctor.SpecialtyName</div>
+                    </div>
+                    <span class="badge bg-primary">@doctor.ExperienceYears năm</span>
+                </div>
+            }
+        </div>
+
+        <div class="admin-section-card">
+            <h5 class="mb-3">Biểu đồ / thống kê</h5>
+            <div class="chart-placeholder">
+                Placeholder khu vực biểu đồ thống kê
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetStatusBadge(string statusName)
+    {
+        return statusName switch
+        {
+            "Pending" => "badge bg-warning text-dark",
+            "Confirmed" => "badge bg-primary",
+            "Completed" => "badge bg-secondary",
+            "Cancelled" => "badge bg-danger",
+            _ => "badge bg-dark"
+        };
+    }
+}

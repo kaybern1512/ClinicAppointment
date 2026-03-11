@@ -1,0 +1,56 @@
+﻿@model ContactViewModel
+@{
+    ViewData["Title"] = "Liên hệ";
+}
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h2 class="mb-3">Thông tin phòng khám</h2>
+                <p><i class="bi bi-geo-alt me-2"></i>123 Nguyễn Văn Linh, Đà Nẵng</p>
+                <p><i class="bi bi-telephone me-2"></i>0909 999 999</p>
+                <p><i class="bi bi-envelope me-2"></i>support@clinicbooking.com</p>
+                <p><i class="bi bi-clock me-2"></i>Thứ 2 - Thứ 7: 07:30 - 17:30</p>
+
+                <div class="map-placeholder mt-4">
+                    Placeholder bản đồ
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="mb-4">Gửi liên hệ</h2>
+
+                <form asp-action="Contact" method="post">
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Message" class="form-label"></label>
+                        <textarea asp-for="Message" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="Message" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Gửi liên hệ</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

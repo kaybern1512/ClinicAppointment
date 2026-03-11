@@ -1,0 +1,111 @@
+﻿@model AppointmentCreateViewModel
+@{
+    ViewData["Title"] = "Đặt lịch khám";
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm appointment-form-card">
+            <div class="card-body p-4">
+                <h2 class="mb-4">Đặt lịch khám</h2>
+
+                <form asp-action="Create" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="PatientName" class="form-label"></label>
+                            <input asp-for="PatientName" class="form-control" />
+                            <span asp-validation-for="PatientName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="form-label"></label>
+                            <input asp-for="PhoneNumber" class="form-control" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="DateOfBirth" class="form-label"></label>
+                            <input asp-for="DateOfBirth" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label asp-for="Gender" class="form-label"></label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">-- Chọn giới tính --</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="SpecialtyId" class="form-label"></label>
+                            <select asp-for="SpecialtyId" asp-items="Model.Specialties" class="form-select">
+                                <option value="">-- Chọn chuyên khoa --</option>
+                            </select>
+                            <span asp-validation-for="SpecialtyId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="DoctorId" class="form-label"></label>
+                            <select asp-for="DoctorId" asp-items="Model.Doctors" class="form-select">
+                                <option value="">-- Chọn bác sĩ --</option>
+                            </select>
+                            <span asp-validation-for="DoctorId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="AppointmentDate" class="form-label"></label>
+                            <input asp-for="AppointmentDate" class="form-control" />
+                            <span asp-validation-for="AppointmentDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="AppointmentTime" class="form-label"></label>
+                            <input asp-for="AppointmentTime" class="form-control" />
+                            <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Symptoms" class="form-label"></label>
+                            <textarea asp-for="Symptoms" class="form-control" rows="4" placeholder="Nhập triệu chứng hoặc ghi chú..."></textarea>
+                            <span asp-validation-for="Symptoms" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Đặt lịch</button>
+                        <button type="reset" class="btn btn-outline-secondary">Làm mới</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <h4 class="mb-3">Tóm tắt lịch hẹn</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Điền đầy đủ thông tin cá nhân</li>
+                    <li class="list-group-item">Chọn chuyên khoa phù hợp</li>
+                    <li class="list-group-item">Chọn bác sĩ mong muốn</li>
+                    <li class="list-group-item">Chọn ngày và giờ khám</li>
+                    <li class="list-group-item">Kiểm tra lại trước khi gửi</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
