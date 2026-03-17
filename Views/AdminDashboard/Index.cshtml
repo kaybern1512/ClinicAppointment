@@ -4,6 +4,13 @@
     ViewData["Title"] = "Dashboard";
 }
 
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
 <div class="row g-4 mb-4">
     <div class="col-md-6 col-xl-3">
         <div class="admin-stat-card">
@@ -77,6 +84,38 @@
 
 <div class="row g-4">
     <div class="col-lg-8">
+        <div class="admin-section-card h-100">
+            <h5 class="mb-3">Thống kê lịch hẹn (7 ngày gần nhất)</h5>
+            <canvas id="appointmentChart"></canvas>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-section-card mb-4">
+            <h5 class="mb-3">Bác sĩ nổi bật</h5>
+            @if(Model.FeaturedDoctors.Any())
+            {
+                @foreach (var doctor in Model.FeaturedDoctors)
+                {
+                    <div class="featured-doctor-item">
+                        <div>
+                            <div class="fw-semibold">@doctor.FullName</div>
+                            <div class="text-muted small">@doctor.SpecialtyName</div>
+                        </div>
+                        <span class="badge bg-primary">@doctor.ExperienceYears năm</span>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">Chưa có bác sĩ nổi bật.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-0">
+     <div class="col-12">
         <div class="admin-section-card">
             <h5 class="mb-3">Lịch hẹn gần đây</h5>
             <div class="table-responsive">
@@ -92,17 +131,26 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model.RecentAppointments)
+                        @if(Model.RecentAppointments.Any())
+                        {
+                            @foreach (var item in Model.RecentAppointments)
+                            {
+                                <tr>
+                                    <td>#@item.AppointmentId</td>
+                                    <td>@item.PatientName</td>
+                                    <td>@item.DoctorName</td>
+                                    <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                                    <td>@item.AppointmentTime.ToString("HH:mm")</td>
+                                    <td>
+                                        <span class="@GetStatusBadge(item.StatusName)">@item.StatusName</span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>#@item.AppointmentId</td>
-                                <td>@item.PatientName</td>
-                                <td>@item.DoctorName</td>
-                                <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
-                                <td>@item.AppointmentTime.ToString("HH:mm")</td>
-                                <td>
-                                    <span class="@GetStatusBadge(item.StatusName)">@item.StatusName</span>
-                                </td>
+                                <td colspan="6" class="text-center">Chưa có lịch hẹn nào.</td>
                             </tr>
                         }
                     </tbody>
@@ -110,30 +158,8 @@
             </div>
         </div>
     </div>
-
-    <div class="col-lg-4">
-        <div class="admin-section-card mb-4">
-            <h5 class="mb-3">Bác sĩ nổi bật</h5>
-            @foreach (var doctor in Model.FeaturedDoctors)
-            {
-                <div class="featured-doctor-item">
-                    <div>
-                        <div class="fw-semibold">@doctor.FullName</div>
-                        <div class="text-muted small">@doctor.SpecialtyName</div>
-                    </div>
-                    <span class="badge bg-primary">@doctor.ExperienceYears năm</span>
-                </div>
-            }
-        </div>
-
-        <div class="admin-section-card">
-            <h5 class="mb-3">Biểu đồ / thống kê</h5>
-            <div class="chart-placeholder">
-                Placeholder khu vực biểu đồ thống kê
-            </div>
-        </div>
-    </div>
 </div>
+
 
 @functions {
     public string GetStatusBadge(string statusName)
@@ -147,4 +173,47 @@
             _ => "badge bg-dark"
         };
     }
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const chartLabels = @Html.Raw(ViewBag.ChartLabels ?? "[]");
+            const chartData = @Html.Raw(ViewBag.ChartData ?? "[]");
+
+            if (chartLabels.length > 0) {
+                const ctx = document.getElementById('appointmentChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'Số lịch hẹn',
+                            data: chartData,
+                            backgroundColor: 'rgba(0, 201, 167, 0.6)',
+                            borderColor: 'rgba(0, 201, 167, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 }

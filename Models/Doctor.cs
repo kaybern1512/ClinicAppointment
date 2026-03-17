@@ -11,6 +11,8 @@ public partial class Doctor
     [Key]
     public int DoctorId { get; set; }
 
+    public int UserId { get; set; }
+
     [StringLength(150)]
     public string FullName { get; set; } = null!;
 
@@ -31,10 +33,18 @@ public partial class Doctor
 
     public bool IsActive { get; set; }
 
+    [ForeignKey("UserId")]
+    [InverseProperty("Doctor")]
+    public virtual User User { get; set; } = null!;
+
     [InverseProperty("Doctor")]
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+    
+    [InverseProperty("Doctor")]
+    public virtual ICollection<TimeSlot> TimeSlots { get; set; } = new List<TimeSlot>();
 
     [ForeignKey("SpecialtyId")]
     [InverseProperty("Doctors")]
     public virtual Specialty Specialty { get; set; } = null!;
 }
+

@@ -1,0 +1,102 @@
+@model ClinicBookingMVC.ViewModels.Doctor.DoctorDashboardViewModel
+@{
+    ViewData["Title"] = "Bảng điều khiển";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h3 class="mb-4">Chào mừng trở lại, Bác sĩ!</h3>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-primary"><i class="bi bi-calendar-day"></i></div>
+            <div>
+                <div class="stat-label">Lịch hẹn hôm nay</div>
+                <div class="stat-value">@Model.TodayAppointments</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-warning text-dark"><i class="bi bi-hourglass-split"></i></div>
+            <div>
+                <div class="stat-label">Lịch hẹn chờ xác nhận</div>
+                <div class="stat-value">@Model.PendingAppointments</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-success"><i class="bi bi-calendar-check"></i></div>
+            <div>
+                <div class="stat-label">Lịch hẹn đã xác nhận</div>
+                <div class="stat-value">@Model.ConfirmedAppointments</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-info text-dark"><i class="bi bi-calendar3"></i></div>
+            <div>
+                <div class="stat-label">Tổng số lịch hẹn</div>
+                <div class="stat-value">@Model.TotalAppointments</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-section-card">
+    <h5 class="mb-3">Lịch hẹn sắp tới</h5>
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>Mã lịch hẹn</th>
+                    <th>Bệnh nhân</th>
+                    <th>Số điện thoại</th>
+                    <th>Ngày khám</th>
+                    <th>Giờ khám</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.UpcomingAppointments.Any())
+                {
+                    foreach (var item in Model.UpcomingAppointments)
+                    {
+                        <tr>
+                            <td>#@item.AppointmentId</td>
+                            <td>@item.PatientName</td>
+                            <td>@item.PatientPhoneNumber</td>
+                            <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                            <td>@item.AppointmentTime.ToString("HH:mm")</td>
+                            <td>
+                                <span class="@GetStatusBadge(item.StatusName)">@item.StatusName</span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center p-4">
+                            <p class="mb-0">Bạn không có lịch hẹn nào sắp tới.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@functions {
+    public string GetStatusBadge(string statusName)
+    {
+        return statusName switch
+        {
+            "Pending" => "badge bg-warning text-dark",
+            "Confirmed" => "badge bg-primary",
+            _ => "badge bg-dark"
+        };
+    }
+}

@@ -4,6 +4,7 @@
     {
         public int AppointmentId { get; set; }
         public string PatientName { get; set; } = string.Empty;
+        public string? PatientPhoneNumber { get; set; }
         public string DoctorName { get; set; } = string.Empty;
         public string SpecialtyName { get; set; } = string.Empty;
         public DateOnly AppointmentDate { get; set; }

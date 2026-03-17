@@ -37,4 +37,7 @@ public partial class User
     [ForeignKey("RoleId")]
     [InverseProperty("Users")]
     public virtual Role Role { get; set; } = null!;
+
+    [InverseProperty("User")]
+    public virtual Doctor? Doctor { get; set; }
 }

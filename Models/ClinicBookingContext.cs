@@ -28,10 +28,7 @@ public partial class ClinicBookingContext : DbContext
     public virtual DbSet<Specialty> Specialties { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-1TUBGEU\\SQLEXPRESS;Database=ClinicBookingDB;User Id=sa;Password=123456;TrustServerCertificate=True;");
+    public virtual DbSet<TimeSlot> TimeSlots { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -77,6 +74,12 @@ public partial class ClinicBookingContext : DbContext
             entity.HasOne(d => d.Specialty).WithMany(p => p.Doctors)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Doctors_Specialties");
+            
+            // Explicitly define the one-to-one relationship with User
+            entity.HasOne(d => d.User)
+                  .WithOne(p => p.Doctor)
+                  .HasForeignKey<Doctor>(d => d.UserId)
+                  .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<Role>(entity =>
@@ -84,9 +87,22 @@ public partial class ClinicBookingContext : DbContext
             entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1A59CDC53F");
         });
 
+
+
         modelBuilder.Entity<Specialty>(entity =>
         {
             entity.HasKey(e => e.SpecialtyId).HasName("PK__Specialt__D768F6A86F916402");
+        });
+
+        modelBuilder.Entity<TimeSlot>(entity =>
+        {
+            entity.HasKey(e => e.TimeSlotId);
+
+            // Explicitly define the one-to-many relationship with Doctor
+            entity.HasOne(d => d.Doctor)
+                  .WithMany(p => p.TimeSlots)
+                  .HasForeignKey(d => d.DoctorId)
+                  .OnDelete(DeleteBehavior.ClientSetNull);
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -103,6 +119,7 @@ public partial class ClinicBookingContext : DbContext
 
         OnModelCreatingPartial(modelBuilder);
     }
+
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
