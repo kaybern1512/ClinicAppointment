@@ -1,0 +1,63 @@
+@model IEnumerable<ClinicBookingMVC.Models.Appointment>
+@{
+    ViewData["Title"] = "Hồ sơ Bệnh án của tôi";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h2 class="mb-4 text-primary"><i class="bi bi-journal-medical me-2"></i>Hồ sơ Bệnh án của tôi</h2>
+        <p class="text-muted mb-4">Danh sách các ca khám đã hoàn thành. Bạn có thể xem lại chi tiết chẩn đoán và đơn thuốc bên dưới.</p>
+
+        <div class="table-responsive">
+            <table class="table align-middle appointment-table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã ca khám</th>
+                        <th>Bác sĩ phụ trách</th>
+                        <th>Chuyên khoa</th>
+                        <th>Ngày khám</th>
+                        <th>Giờ khám</th>
+                        <th class="text-end">Hồ sơ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-primary">#@item.AppointmentId</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-light rounded-circle text-primary me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                        @item.Doctor.FullName
+                                    </div>
+                                </td>
+                                <td>@item.Specialty.SpecialtyName</td>
+                                <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                                <td>@item.AppointmentTime.ToString(@"hh\:mm")</td>
+                                <td class="text-end">
+                                    <a asp-action="RecordDetails" asp-route-id="@item.AppointmentId" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                                        <i class="bi bi-file-earmark-medical"></i> Xem bệnh án
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center p-5">
+                                <i class="bi bi-folder-x text-muted" style="font-size: 3rem;"></i>
+                                <p class="mt-3 mb-0 text-muted">Bạn chưa có hồ sơ bệnh án nào.</p>
+                                <small class="text-muted">Các hồ sơ sẽ xuất hiện ở đây sau khi bác sĩ hoàn tất ca khám của bạn.</small>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

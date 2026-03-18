@@ -57,6 +57,7 @@
                     <th>Ngày khám</th>
                     <th>Giờ khám</th>
                     <th>Trạng thái</th>
+                    <th>Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -73,13 +74,18 @@
                             <td>
                                 <span class="@GetStatusBadge(item.StatusName)">@item.StatusName</span>
                             </td>
+                            <td>
+                                <a asp-action="AppointmentDetails" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Chi tiết
+                                </a>
+                            </td>
                         </tr>
                     }
                 }
                 else
                 {
                     <tr>
-                        <td colspan="6" class="text-center p-4">
+                        <td colspan="7" class="text-center p-4">
                             <p class="mb-0">Bạn không có lịch hẹn nào sắp tới.</p>
                         </td>
                     </tr>

@@ -2,18 +2,21 @@
 .vs/
 *.user
 *.suo
-
+appsettings.json
 # Build folders
 bin/
 obj/
-
+.gitignore
 # Rider / VSCode
 .idea/
 .vscode/
-
+SampleData.sql
 # Logs
 *.log
 
 # OS files
 .DS_Store
 Thumbs.db
+appsettings.json
+appsettings.json
+.gitignore

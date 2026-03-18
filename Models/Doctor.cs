@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -10,8 +10,6 @@ public partial class Doctor
 {
     [Key]
     public int DoctorId { get; set; }
-
-    public int UserId { get; set; }
 
     [StringLength(150)]
     public string FullName { get; set; } = null!;
@@ -32,10 +30,6 @@ public partial class Doctor
     public bool IsFeatured { get; set; }
 
     public bool IsActive { get; set; }
-
-    [ForeignKey("UserId")]
-    [InverseProperty("Doctor")]
-    public virtual User User { get; set; } = null!;
 
     [InverseProperty("Doctor")]
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();

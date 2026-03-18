@@ -1,0 +1,145 @@
+@model ClinicBookingMVC.Models.Appointment
+@{
+    ViewData["Title"] = "Chi tiết Lịch hẹn & Bệnh án";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var existingRecord = ViewBag.ExistingRecord as ClinicBookingMVC.Models.MedicalRecord;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0">Chi tiết Lịch hẹn #@Model.AppointmentId</h3>
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Thông tin chi tiết lịch hẹn -->
+    <div class="col-lg-5">
+        <div class="admin-section-card h-100">
+            <h5 class="mb-4">Thông tin bệnh nhân</h5>
+            
+            <table class="table table-borderless">
+                <tbody>
+                    <tr>
+                        <th style="width: 40%">Tên bệnh nhân:</th>
+                        <td><span class="fw-semibold">@Model.PatientName</span></td>
+                    </tr>
+                    <tr>
+                        <th>Số điện thoại:</th>
+                        <td>@Model.PhoneNumber</td>
+                    </tr>
+                    <tr>
+                        <th>Giới tính:</th>
+                        <td>@(string.IsNullOrEmpty(Model.Gender) ? "Chưa cung cấp" : Model.Gender)</td>
+                    </tr>
+                    <tr>
+                        <th>Ngày sinh:</th>
+                        <td>@(Model.DateOfBirth?.ToString("dd/MM/yyyy") ?? "Chưa cung cấp")</td>
+                    </tr>
+                    <tr>
+                        <th>Ngày khám:</th>
+                        <td>@Model.AppointmentDate.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                    <tr>
+                        <th>Giờ khám:</th>
+                        <td>@Model.AppointmentTime.ToString("HH:mm")</td>
+                    </tr>
+                    <tr>
+                        <th>Trạng thái:</th>
+                        <td>
+                            @{
+                                var statusClass = Model.Status.StatusName switch
+                                {
+                                    "Pending" => "badge bg-warning text-dark",
+                                    "Confirmed" => "badge bg-primary",
+                                    "Completed" => "badge bg-success",
+                                    "Cancelled" => "badge bg-danger",
+                                    _ => "badge bg-dark"
+                                };
+                            }
+                            <span class="@statusClass">@Model.Status.StatusName</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Triệu chứng:</th>
+                        <td>@(string.IsNullOrEmpty(Model.Symptoms) ? "Không có" : Model.Symptoms)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Vùng Bệnh Án (Medical Record) -->
+    <div class="col-lg-7">
+        <div class="admin-section-card h-100">
+            @if (existingRecord != null)
+            {
+                <h5 class="mb-4 text-success"><i class="bi bi-check-circle-fill me-2"></i>Hồ sơ bệnh án đã lưu</h5>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ngày kê đơn:</label>
+                    <div>@existingRecord.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Chẩn đoán (Diagnosis):</label>
+                    <div class="p-3 bg-light rounded border">
+                        @Html.Raw(existingRecord.Diagnosis?.Replace("\n", "<br/>") ?? "Không có")
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Đơn thuốc (Prescription):</label>
+                    <div class="p-3 bg-light rounded border">
+                        @Html.Raw(existingRecord.Prescription?.Replace("\n", "<br/>") ?? "Không có")
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Ghi chú của bác sĩ (Doctor Notes):</label>
+                    <div class="p-3 bg-light rounded border">
+                        @Html.Raw(existingRecord.DoctorNotes?.Replace("\n", "<br/>") ?? "Không có")
+                    </div>
+                </div>
+            }
+            else
+            {
+                <h5 class="mb-4">Viết Hồ sơ Bệnh án mới</h5>
+
+                @if (Model.Status.StatusName == "Cancelled")
+                {
+                    <div class="alert alert-warning">
+                        Lịch hẹn này đã bị hủy. Bạn không thể viết bệnh án.
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info py-2">
+                        <i class="bi bi-info-circle me-1"></i> Sau khi lưu bệnh án, thao tác này không thể hoàn tác và trạng thái cuộc hẹn sẽ tự động chuyển sang <strong>Completed</strong>.
+                    </div>
+
+                    <form asp-action="SaveMedicalRecord" method="post">
+                        <input type="hidden" name="appointmentId" value="@Model.AppointmentId" />
+
+                        <div class="mb-3">
+                            <label for="diagnosis" class="form-label fw-bold">Chẩn đoán sơ bộ <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" required placeholder="Nhập chẩn đoán kết luận bệnh"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="prescription" class="form-label fw-bold">Kê đơn thuốc</label>
+                            <textarea class="form-control" id="prescription" name="prescription" rows="4" placeholder="Tên thuốc - Liều lượng - Cách dùng"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="doctorNotes" class="form-label fw-bold">Ghi chú thêm (Lời dặn dò)</label>
+                            <textarea class="form-control" id="doctorNotes" name="doctorNotes" rows="2" placeholder="Ghi chú thêm về ăn uống, sinh hoạt..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-success px-4" onclick="return confirm('Bạn có chắc chắn muốn lưu bệnh án này? Hồ sơ sẽ không thể sửa đổi sau khi lưu.');">
+                                <i class="bi bi-save me-1"></i> Lưu Bệnh Án
+                            </button>
+                        </div>
+                    </form>
+                }
+            }
+        </div>
+    </div>
+</div>

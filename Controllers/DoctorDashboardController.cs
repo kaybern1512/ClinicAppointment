@@ -29,20 +29,19 @@ namespace ClinicBookingMVC.Controllers
 
             try
             {
-                var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (!int.TryParse(userIdStr, out var userId))
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
                 {
-                    _logger.LogWarning("Could not parse user ID for user {User}", User.Identity.Name);
-                    ViewData["ErrorMessage"] = "Không thể xác thực ID người dùng.";
-                    return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+                    _logger.LogWarning("Current user not found for {User}", User.Identity.Name);
+                    return RedirectToAction("Login", "Account");
                 }
 
-                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == userId);
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == user.FullName);
 
                 if (doctor == null)
                 {
-                    _logger.LogWarning("User with ID {UserId} and role Doctor does not have an associated Doctor entity.", userId);
-                    ViewData["ErrorMessage"] = "Không tìm thấy thông tin bác sĩ tương ứng với tài khoản của bạn.";
+                    _logger.LogWarning("User {FullName} does not have an associated Doctor entity.", user.FullName);
+                    ViewData["ErrorMessage"] = "Không tìm thấy thông tin bác sĩ tương ứng với tên của bạn.";
                     return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
                 }
 
@@ -82,6 +81,74 @@ namespace ClinicBookingMVC.Controllers
                 ViewData["ErrorMessage"] = "Đã có lỗi xảy ra khi tải dữ liệu cho bảng điều khiển.";
                 return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
             }
+        }
+
+        public async Task<IActionResult> AppointmentDetails(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Index");
+
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == user.FullName);
+            if (doctor == null) return RedirectToAction("Index");
+
+            var appointment = await _context.Appointments
+                .Include(a => a.Patient)
+                .Include(a => a.Status)
+                .FirstOrDefaultAsync(a => a.AppointmentId == id && a.DoctorId == doctor.DoctorId);
+
+            if (appointment == null) return NotFound();
+
+            var record = await _context.MedicalRecords
+                .FirstOrDefaultAsync(m => m.AppointmentId == id);
+
+            ViewBag.ExistingRecord = record;
+
+            return View(appointment);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveMedicalRecord(int appointmentId, string diagnosis, string prescription, string doctorNotes)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return RedirectToAction("Index");
+
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == user.FullName);
+            if (doctor == null) return RedirectToAction("Index");
+
+            var appointment = await _context.Appointments
+                .Include(a => a.Status)
+                .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId && a.DoctorId == doctor.DoctorId);
+
+            if (appointment == null) return NotFound();
+
+            // Check if record already exists
+            var existingRecord = await _context.MedicalRecords.FirstOrDefaultAsync(m => m.AppointmentId == appointmentId);
+            if (existingRecord == null)
+            {
+                var newRecord = new MedicalRecord
+                {
+                    AppointmentId = appointmentId,
+                    Diagnosis = diagnosis,
+                    Prescription = prescription,
+                    DoctorNotes = doctorNotes,
+                    CreatedAt = DateTime.Now
+                };
+                _context.MedicalRecords.Add(newRecord);
+
+                // Update Appointment Status to "Completed" (Find status ID first)
+                var completedStatus = await _context.AppointmentStatuses.FirstOrDefaultAsync(s => s.StatusName == "Completed");
+                if (completedStatus != null)
+                {
+                    appointment.StatusId = completedStatus.StatusId;
+                    _context.Appointments.Update(appointment);
+                }
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Đã lưu bệnh án và hoàn thành lịch hẹn thành công.";
+            }
+
+            return RedirectToAction("AppointmentDetails", new { id = appointmentId });
         }
     }
 }

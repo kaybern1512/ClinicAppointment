@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -37,7 +37,4 @@ public partial class User
     [ForeignKey("RoleId")]
     [InverseProperty("Users")]
     public virtual Role Role { get; set; } = null!;
-
-    [InverseProperty("User")]
-    public virtual Doctor? Doctor { get; set; }
 }
