@@ -1,0 +1,47 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Người thân";
+}
+
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-people me-2 text-primary"></i>Quản lý người thân</h2>
+        <a asp-controller="Relatives" asp-action="Create" class="btn btn-primary">Thêm mới</a>
+    </div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tên</th>
+                            <th>Mối quan hệ</th>
+                            <th>Ngày sinh</th>
+                            <th>Giới tính</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nguyễn Văn Minh (Con)</td>
+                            <td>Con trai</td>
+                            <td>15/05/2015</td>
+                            <td>Nam</td>
+                            <td><a href="#" class="btn btn-sm btn-outline-primary">Chỉnh sửa</a> <a href="#" class="btn btn-sm btn-danger">Xóa</a></td>
+                        </tr>
+                        <tr>
+                            <td>Trần Thị Lan (Mẹ)</td>
+                            <td>Mẹ</td>
+                            <td>20/03/1960</td>
+                            <td>Nữ</td>
+                            <td><a href="#" class="btn btn-sm btn-outline-primary">Chỉnh sửa</a> <a href="#" class="btn btn-sm btn-danger">Xóa</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="alert alert-info mt-3">
+        <i class="bi bi-info-circle me-2"></i> Demo: Thêm hồ sơ người thân để đặt lịch hộ họ.
+    </div>
+</div>

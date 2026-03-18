@@ -1,0 +1,47 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý khung giờ";
+}
+
+<h3 class=\"mb-4\">Khung giờ làm việc tuần này</h3>
+
+<div class=\"row g-4 mb-4\">
+    <div class=\"col-md-8\">
+        <div class=\"admin-section-card\">
+            <h5>Lịch trống (mock calendar)</h5>
+            <div class=\"row text-center\">
+                <!-- Mock days -->
+                <div class=\"col-2 border-end py-3\"><strong>T2<br>14/10</strong><div class=\"mt-2\"><span class=\"badge bg-success\">08:00-12:00</span> <span class=\"badge bg-success\">14:00-17:00</span></div></div>
+                <div class=\"col-2 border-end py-3\"><strong>T3<br>15/10</strong><div class=\"mt-2\"><span class=\"badge bg-danger\">Full</span></div></div>
+                <div class=\"col-2 border-end py-3\"><strong>T4<br>16/10</strong><div class=\"mt-2\"><span class=\"badge bg-success\">14:00-17:00</span></div></div>
+                <div class=\"col-2 border-end py-3\"><strong>T5<br>17/10</strong><div class=\"mt-2\"><span class=\"badge bg-success\">08:00-12:00</span></div></div>
+                <div class=\"col-2 border-end py-3\"><strong>T6<br>18/10</strong><div class=\"mt-2\"><span class=\"badge bg-warning text-dark\">OFF</span></div></div>
+                <div class=\"col-2 py-3\"><strong>T7-CN<br>19-20</strong><div class=\"mt-2\"><span class=\"badge bg-secondary\">Nghỉ</span></div></div>
+            </div>
+        </div>
+    </div>
+    <div class=\"col-md-4\">
+        <div class=\"admin-section-card\">
+            <h5>Thêm khung giờ mới</h5>
+            <form>
+                <div class=\"mb-3\">
+                    <label class=\"form-label\">Ngày</label>
+                    <input type=\"date\" class=\"form-control\" value=\"2024-10-17\">
+                </div>
+                <div class=\"mb-3\">
+                    <label class=\"form-label\">Từ</label>
+                    <input type=\"time\" class=\"form-control\" value=\"08:00\">
+                </div>
+                <div class=\"mb-3\">
+                    <label class=\"form-label\">Đến</label>
+                    <input type=\"time\" class=\"form-control\" value=\"12:00\">
+                </div>
+                <button type=\"submit\" class=\"btn btn-primary w-100\">Thêm slot</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class=\"alert alert-info\">
+    <i class=\"bi bi-info-circle me-2\"></i> Demo: Khung xanh = trống, đỏ = full. Form mock chỉ demo UI.
+</div>

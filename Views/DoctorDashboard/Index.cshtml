@@ -78,6 +78,9 @@
                                 <a asp-action="AppointmentDetails" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-eye"></i> Chi tiết
                                 </a>
+                                <a asp-controller="TimeSlots" asp-action="Index" class="btn btn-sm btn-outline-success ms-1">
+                                    <i class="bi bi-calendar-plus"></i> Khung giờ
+                                </a>
                             </td>
                         </tr>
                     }
@@ -92,10 +95,18 @@
                 }
             </tbody>
         </table>
+
+        <!-- Quick link to TimeSlots -->
+        <div class="mt-3 text-center">
+            <a asp-controller="TimeSlots" asp-action="Index" class="btn btn-outline-success">
+                <i class="bi bi-calendar-plus me-2"></i> Quản lý khung giờ
+            </a>
+        </div>
     </div>
 </div>
 
 @functions {
+
     public string GetStatusBadge(string statusName)
     {
         return statusName switch

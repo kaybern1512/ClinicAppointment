@@ -76,10 +76,14 @@
         <a asp-controller="AdminAppointments" asp-action="Index" class="btn btn-outline-secondary">
             <i class="bi bi-calendar3 me-1"></i> Xem lịch hẹn
         </a>
-        <a asp-controller="AdminUsers" asp-action="Index" class="btn btn-outline-dark">
+                <a asp-controller="AdminUsers" asp-action="Index" class="btn btn-outline-dark">
             <i class="bi bi-people me-1"></i> Quản lý người dùng
         </a>
+                <a asp-controller="Reports" asp-action="Index" class="btn btn-success">
+            <i class="bi bi-bar-chart me-1"></i> Xem báo cáo
+        </a>
     </div>
+
 </div>
 
 <div class="row g-4">
@@ -111,6 +115,16 @@
                 <p class="text-muted">Chưa có bác sĩ nổi bật.</p>
             }
         </div>
+
+        <!-- Mock Realtime Feed -->
+        <div class="admin-section-card">
+            <h5 class="mb-3">Realtime Hoạt động</h5>
+            <div id="quickFeed">
+                <div class="feed-item small"><i class="bi bi-circle-fill text-success me-1"></i> New booking #1243</div>
+                <div class="feed-item small"><i class="bi bi-circle-fill text-info me-1"></i> Payment confirmed</div>
+                <div class="feed-item small"><i class="bi bi-circle-fill text-warning me-1"></i> Appt cancelled</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -118,6 +132,7 @@
      <div class="col-12">
         <div class="admin-section-card">
             <h5 class="mb-3">Lịch hẹn gần đây</h5>
+
             <div class="table-responsive">
                 <table class="table admin-table align-middle">
                     <thead>

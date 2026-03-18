@@ -1,0 +1,50 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Thêm người thân";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h2 class="mb-4">Thêm hồ sơ người thân</h2>
+            <form>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Họ tên *</label>
+                        <input type="text" class="form-control" placeholder="Nguyễn Văn Minh">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Mối quan hệ *</label>
+                        <select class="form-select">
+                            <option>Con trai</option>
+                            <option>Con gái</option>
+                            <option>Vợ/Chồng</option>
+                            <option>Cha/Mẹ</option>
+                            <option>Anh/Chị/Em</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Ngày sinh</label>
+                        <input type="date" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Giới tính</label>
+                        <select class="form-select">
+                            <option>Nam</option>
+                            <option>Nữ</option>
+                            <option>Khác</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea class="form-control" rows="3" placeholder="Dị ứng thuốc, bệnh mãn tính..."></textarea>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary px-4">Lưu hồ sơ</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary ms-2">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

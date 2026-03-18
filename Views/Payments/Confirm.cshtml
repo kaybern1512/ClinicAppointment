@@ -1,0 +1,34 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Xác nhận thanh toán";
+}
+
+<div class=\"container my-5\">
+    <div class=\"row justify-content-center\">
+        <div class=\"col-lg-8\">
+            <div class=\"text-center mb-5\">
+                <div class=\"bg-success bg-opacity-10 border border-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3\" style=\"width: 100px; height: 100px;\">
+                    <i class=\"bi bi-check-circle-fill text-success fs-1\"></i>
+                </div>
+                <h2 class=\"text-success mb-1\">Thanh toán thành công!</h2>
+                <p class=\"text-muted\">Lịch hẹn #1241 đã được xác nhận. Cảm ơn bạn.</p>
+            </div>
+            <div class=\"card border-0 shadow-sm\">
+                <div class=\"card-body\">
+                    <h5>Tóm tắt</h5>
+                    <div class=\"row g-3\">
+                        <div class=\"col-md-6\"><strong>Lịch hẹn:</strong> #1241 - BS. B Nhi khoa</div>
+                        <div class=\"col-md-6\"><strong>Số tiền:</strong> 800,000 VND</div>
+                        <div class=\"col-md-6\"><strong>Phương thức:</strong> Online (Momo/VNPay mock)</div>
+                        <div class=\"col-md-6\"><strong>Thời gian:</strong> 15/10/2024 14:00</div>
+                    </div>
+                    <div class=\"mt-4 text-center\">
+                        <a asp-controller="Appointments" asp-action="MyAppointments" class="btn btn-primary px-4">Xem lịch hẹn</a>
+                        <a asp-controller="Payments" asp-action="Index" class="btn btn-outline-secondary ms-2">Lịch sử TT</a>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

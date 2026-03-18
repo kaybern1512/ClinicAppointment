@@ -1,0 +1,53 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Lịch sử thanh toán";
+}
+
+<div class=\"container my-5\">
+    <h2 class=\"mb-4\">Lịch sử thanh toán của tôi</h2>
+    <div class=\"card border-0 shadow-sm\">
+        <div class=\"card-body p-0\">
+            <div class=\"table-responsive\">
+                <table class=\"table table-hover\">
+                    <thead class=\"table-dark\">
+                        <tr>
+                            <th>Lịch hẹn</th>
+                            <th>Số tiền</th>
+                            <th>Phương thức</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#1243 - BS. A Nội khoa</td>
+                            <td>1,200,000 VND</td>
+                            <td>Online</td>
+                            <td><span class=\"badge bg-success\">PAID</span></td>
+                            <td>15/10/2024</td>
+                            <td><a href=\"#\" class=\"btn btn-sm btn-outline-primary\">Chứng từ</a></td>
+                        </tr>
+                        <tr>
+                            <td>#1241 - BS. B Nhi khoa</td>
+                            <td>800,000 VND</td>
+                            <td>Tại quầy</td>
+                            <td><span class=\"badge bg-warning text-dark\">UNPAID</span></td>
+                            <td>10/10/2024</td>
+                    <td><a asp-controller="Payments" asp-action="Confirm" asp-route-id="1241" class="btn btn-sm btn-primary">Thanh toán ngay</a></td>
+
+                        </tr>
+                        <tr>
+                            <td>#1239 - BS. C Răng</td>
+                            <td>1,500,000 VND</td>
+                            <td>Online</td>
+                            <td><span class=\"badge bg-danger\">REFUNDED</span></td>
+                            <td>05/10/2024</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

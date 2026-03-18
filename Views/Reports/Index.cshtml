@@ -1,0 +1,134 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Báo cáo hệ thống";
+}
+
+<div class="row g-4 mb-4">
+    <!-- KPI Cards incl. Revenue mock -->
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-primary"><i class="bi bi-calendar-check"></i></div>
+            <div>
+                <div class="stat-label">Tổng lượt đặt</div>
+                <div class="stat-value">1,247</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-success"><i class="bi bi-currency-dollar"></i></div>
+            <div>
+                <div class="stat-label">Doanh thu</div>
+                <div class="stat-value text-success">500.2M<small class="text-muted"> VND</small></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-info text-dark"><i class="bi bi-person-badge"></i></div>
+            <div>
+                <div class="stat-label">Bác sĩ active</div>
+                <div class="stat-value">42</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="admin-stat-card">
+            <div class="stat-icon bg-warning text-dark"><i class="bi bi-x-circle"></i></div>
+            <div>
+                <div class="stat-label">Lịch hủy</div>
+                <div class="stat-value">23</div>
+                <div class="small text-muted">1.8%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="admin-section-card">
+            <h5>Xu hướng lượt đặt (30 ngày)</h5>
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="admin-section-card">
+            <h5>Phân bổ trạng thái</h5>
+            <canvas id="statusPie"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="admin-section-card">
+            <h5>Top bác sĩ (doanh thu)</h5>
+            <div class="table-responsive">
+                <table class="table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Bác sĩ</th>
+                            <th>Chuyên khoa</th>
+                            <th>Lượt khám</th>
+                            <th>Doanh thu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>BS. Nguyễn Văn A</td><td>Nội khoa</td><td>156</td><td>156M</td></tr>
+                        <tr><td>BS. Trần Thị B</td><td>Nhi khoa</td><td>142</td><td>142M</td></tr>
+                        <tr><td>BS. Lê Văn C</td><td>Răng hàm</td><td>89</td><td>89M</td></tr>
+                        <tr><td>BS. Phạm Thị D</td><td>Da liễu</td><td>76</td><td>76M</td></tr>
+                        <tr><td>BS. Hoàng Văn E</td><td>Phục hồi</td><td>65</td><td>65M</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="admin-section-card">
+            <h5>Realtime Feed</h5>
+            <div id="realtimeFeed" class="feed-list">
+                <div class="feed-item"><i class="bi bi-check-circle text-success"></i> Bệnh nhân Minh xác nhận lịch #1243 <span class="float-end">2s ago</span></div>
+                <div class="feed-item"><i class="bi bi-credit-card text-info"></i> Thanh toán online #567 thành công 1.2M <span class="float-end">5s ago</span></div>
+                <div class="feed-item"><i class="bi bi-calendar-x text-warning"></i> BS. A hủy lịch #1242 <span class="float-end">1min ago</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Trend chart mock
+        new Chart(document.getElementById('trendChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['01/10','08/10','15/10','22/10','29/10'],
+                datasets: [{label: 'Lượt đặt', data: [120,180,220,190,250], borderColor: '#00C9A7', fill: false}]
+            }
+        });
+        // Pie chart mock
+        new Chart(document.getElementById('statusPie').getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: ['Pending','Confirmed','Completed','Cancelled'],
+                datasets: [{data: [25,40,30,5], backgroundColor: ['#FFC107','#00C9A7','#6C757D','#DC3545']}]
+            }
+        });
+        // Mock realtime update
+        setInterval(() => {
+            const feed = document.getElementById('realtimeFeed');
+            const items = ['New booking #1244 by Lan', 'Payment #568 refunded', 'Doctor confirmed #1245'];
+            const colors = ['success','info','primary'];
+            const item = feed.insertBefore(document.createElement('div'), feed.firstChild);
+            item.className = 'feed-item';
+            item.innerHTML = `<i class="bi bi-check-circle text-${colors[Math.floor(Math.random()*3)]}"></i> ${items[Math.floor(Math.random()*3)]} <span class="float-end">vừa xong</span>`;
+            if (feed.children.length > 5) feed.removeChild(feed.lastChild);
+        }, 10000);
+    </script>
+    <style>
+        .feed-item { padding: 0.75rem 0; border-bottom: 1px solid #2c3034; font-size: 0.9rem; }
+        .feed-item:last-child { border-bottom: none; }
+    </style>
+}
+
