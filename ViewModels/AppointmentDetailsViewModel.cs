@@ -12,5 +12,7 @@
         public TimeOnly AppointmentTime { get; set; }
         public string? Symptoms { get; set; }
         public string StatusName { get; set; } = string.Empty;
+        public string BookingCode { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
     }
 }

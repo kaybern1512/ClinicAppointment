@@ -1,4 +1,4 @@
-﻿using ClinicBookingMVC.Models;
+using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels.Admin;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,21 +17,47 @@ namespace ClinicBookingMVC.Controllers
             _logger = logger;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             _logger.LogInformation("Admin Dashboard Index page accessed.");
             var model = new AdminDashboardViewModel();
             try
             {
-                model.TotalDoctors = await _context.Doctors.CountAsync();
-                model.TotalSpecialties = await _context.Specialties.CountAsync();
-                model.TotalAppointments = await _context.Appointments.CountAsync();
-                model.TotalUsers = await _context.Users.CountAsync();
-                model.PendingAppointments = await _context.Appointments.CountAsync(a => a.Status.StatusName == "Pending");
-                model.ConfirmedAppointments = await _context.Appointments.CountAsync(a => a.Status.StatusName == "Confirmed");
-                model.CompletedAppointments = await _context.Appointments.CountAsync(a => a.Status.StatusName == "Completed");
-                model.CancelledAppointments = await _context.Appointments.CountAsync(a => a.Status.StatusName == "Cancelled");
+                model.TotalDoctors = await _context.Doctors
+                    .AsNoTracking()
+                    .CountAsync(d => d.IsActive);
+
+                model.TotalSpecialties = await _context.Specialties
+                    .AsNoTracking()
+                    .CountAsync(s => s.IsActive);
+
+                model.TotalAppointments = await _context.Appointments
+                    .AsNoTracking()
+                    .CountAsync();
+
+                model.TotalUsers = await _context.Users
+                    .AsNoTracking()
+                    .CountAsync(u => u.IsActive);
+
+                model.PendingAppointments = await _context.Appointments
+                    .AsNoTracking()
+                    .CountAsync(a => a.Status.StatusName == "Pending");
+
+                model.ConfirmedAppointments = await _context.Appointments
+                    .AsNoTracking()
+                    .CountAsync(a => a.Status.StatusName == "Confirmed");
+
+                model.CompletedAppointments = await _context.Appointments
+                    .AsNoTracking()
+                    .CountAsync(a => a.Status.StatusName == "Completed");
+
+                model.CancelledAppointments = await _context.Appointments
+                    .AsNoTracking()
+                    .CountAsync(a => a.Status.StatusName == "Cancelled");
+
                 model.RecentAppointments = await _context.Appointments
+                    .AsNoTracking()
                     .Include(a => a.Doctor)
                     .Include(a => a.Specialty)
                     .Include(a => a.Status)
@@ -49,9 +75,12 @@ namespace ClinicBookingMVC.Controllers
                         CreatedAt = a.CreatedAt
                     })
                     .ToListAsync();
+
                 model.FeaturedDoctors = await _context.Doctors
+                    .AsNoTracking()
                     .Include(d => d.Specialty)
-                    .Where(d => d.IsFeatured)
+                    .Where(d => d.IsFeatured && d.IsActive)
+                    .OrderBy(d => d.FullName)
                     .Take(4)
                     .Select(d => new AdminDoctorListItemViewModel
                     {

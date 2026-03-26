@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicBookingMVC.Models;
 
-[Index("RoleName", Name = "UQ__Roles__8A2B6160FF6999C8", IsUnique = true)]
+[Index("RoleName", Name = "UQ__Roles__8A2B6160B93F7520", IsUnique = true)]
 public partial class Role
 {
     [Key]

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminSpecialtyListItemViewModel>
+@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminSpecialtyListItemViewModel>
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Quản lý chuyên khoa";
@@ -32,7 +32,7 @@
                         <td>@item.SpecialtyId</td>
                         <td>@item.SpecialtyName</td>
                         <td>@(string.IsNullOrWhiteSpace(item.Description) ? "-" : (item.Description.Length > 60 ? item.Description.Substring(0, 60) + "..." : item.Description))</td>
-                        <td>@item.Icon</td>
+                        <td><i class="bi @item.Icon fs-4"></i></td>
                         <td>
                             <img src="@(string.IsNullOrWhiteSpace(item.ImageUrl) ? "https://via.placeholder.com/60x60?text=Sp" : item.ImageUrl)"
                                  class="admin-thumb" />

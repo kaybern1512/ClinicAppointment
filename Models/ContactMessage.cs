@@ -22,4 +22,6 @@ public partial class ContactMessage
 
     [Column(TypeName = "datetime")]
     public DateTime SentAt { get; set; }
+
+    public bool IsReplied { get; set; }
 }

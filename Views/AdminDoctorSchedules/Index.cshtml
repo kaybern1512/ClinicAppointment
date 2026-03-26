@@ -1,0 +1,103 @@
+@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminScheduleListItemViewModel>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý lịch bác sĩ";
+}
+
+<div class="admin-section-card mb-4">
+    <form method="get" asp-action="Index">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Bác sĩ</label>
+                <select name="doctorId" asp-items="ViewBag.DoctorId" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Từ ngày</label>
+                <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Đến ngày</label>
+                <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" />
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button class="btn btn-primary"><i class="bi bi-search me-1"></i>Lọc</button>
+                <a asp-action="Create" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>Tạo lịch</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="admin-section-card">
+    <h5 class="mb-3"><i class="bi bi-calendar-week me-2"></i>Danh sách lịch làm việc</h5>
+
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Bác sĩ</th>
+                    <th>Ngày làm việc</th>
+                    <th>Số slot</th>
+                    <th>Trạng thái</th>
+                    <th>Ghi chú</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>#@item.ScheduleId</td>
+                        <td>@item.DoctorName</td>
+                        <td>@item.WorkDate.ToString("dd/MM/yyyy")</td>
+                        <td><span class="badge bg-info">@item.SlotCount slot</span></td>
+                        <td>
+                            @if (item.IsAvailable)
+                            {
+                                <span class="badge bg-success">Có sẵn</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Không khả dụng</span>
+                            }
+                        </td>
+                        <td>@(item.Notes ?? "—")</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-controller="AdminDoctorScheduleSlots" asp-action="Index" asp-route-scheduleId="@item.ScheduleId"
+                                   class="btn btn-outline-info btn-sm" title="Quản lý slot">
+                                    <i class="bi bi-clock"></i> Slot
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@item.ScheduleId"
+                                   class="btn btn-outline-primary btn-sm" title="Sửa">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@item.ScheduleId" method="post"
+                                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch này?')">
+                                    <button class="btn btn-outline-danger btn-sm" title="Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-calendar-x fs-1"></i>
+            <p class="mt-2">Chưa có lịch nào.</p>
+        </div>
+    }
+</div>

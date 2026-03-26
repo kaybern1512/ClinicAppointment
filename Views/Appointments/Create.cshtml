@@ -1,4 +1,4 @@
-﻿@model AppointmentCreateViewModel
+@model AppointmentCreateViewModel
 @{
     ViewData["Title"] = "Đặt lịch khám";
 }
@@ -69,9 +69,11 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label asp-for="AppointmentTime" class="form-label"></label>
-                            <input asp-for="AppointmentTime" class="form-control" />
-                            <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+                            <label asp-for="DoctorScheduleSlotId" class="form-label"></label>
+                            <select asp-for="DoctorScheduleSlotId" asp-items="Model.ScheduleSlots" class="form-select">
+                                <option value="">-- Chọn khung giờ --</option>
+                            </select>
+                            <span asp-validation-for="DoctorScheduleSlotId" class="text-danger"></span>
                         </div>
 
                         <div class="col-12">
@@ -108,4 +110,59 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            var $specialtySelect = $('#SpecialtyId');
+            var $doctorSelect = $('#DoctorId');
+            var $dateInput = $('#AppointmentDate');
+            var $slotSelect = $('#DoctorScheduleSlotId');
+
+            function loadDoctors() {
+                var specialtyId = $specialtySelect.val();
+                $doctorSelect.html('<option value="">-- Chọn bác sĩ --</option>');
+                $slotSelect.html('<option value="">-- Chọn khung giờ --</option>');
+                
+                if (specialtyId) {
+                    $.get('@Url.Action("GetDoctorsBySpecialty", "Appointments")', { specialtyId: specialtyId }, function(data) {
+                        $.each(data, function(index, doctor) {
+                            $doctorSelect.append($('<option/>', {
+                                value: doctor.value,
+                                text: doctor.text
+                            }));
+                        });
+                    });
+                }
+            }
+
+            function loadSlots() {
+                var doctorId = $doctorSelect.val();
+                var date = $dateInput.val();
+                $slotSelect.html('<option value="">-- Đang tải... --</option>');
+
+                if (doctorId && date) {
+                    $.get('@Url.Action("GetSlots", "Appointments")', { doctorId: doctorId, appointmentDate: date }, function(data) {
+                        $slotSelect.html('<option value="">-- Chọn khung giờ --</option>');
+                        if (data && data.length > 0) {
+                            $.each(data, function(index, slot) {
+                                $slotSelect.append($('<option/>', {
+                                    value: slot.value,
+                                    text: slot.text
+                                }));
+                            });
+                        } else {
+                            $slotSelect.html('<option value="">-- Không có khung giờ trống hoặc chưa có lịch tập --</option>');
+                        }
+                    }).fail(function() {
+                        $slotSelect.html('<option value="">-- Lỗi khi tải khung giờ --</option>');
+                    });
+                } else {
+                    $slotSelect.html('<option value="">-- Chọn khung giờ --</option>');
+                }
+            }
+
+            $specialtySelect.change(loadDoctors);
+            $doctorSelect.change(loadSlots);
+            $dateInput.change(loadSlots);
+        });
+    </script>
 }

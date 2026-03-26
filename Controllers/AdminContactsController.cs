@@ -14,16 +14,20 @@ namespace ClinicBookingMVC.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var model = await _context.ContactMessages
+                .AsNoTracking()
                 .OrderByDescending(c => c.SentAt)
                 .Select(c => new AdminContactListItemViewModel
                 {
                     ContactMessageId = c.ContactMessageId,
                     FullName = c.FullName,
                     Email = c.Email,
-                    MessagePreview = c.Message.Length > 60 ? c.Message.Substring(0, 60) + "..." : c.Message,
+                    MessagePreview = c.Message.Length > 60
+                        ? c.Message.Substring(0, 60) + "..."
+                        : c.Message,
                     SentAt = c.SentAt
                 })
                 .ToListAsync();
@@ -31,10 +35,17 @@ namespace ClinicBookingMVC.Controllers
             return View(model);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var contact = await _context.ContactMessages.FirstOrDefaultAsync(c => c.ContactMessageId == id);
-            if (contact == null) return NotFound();
+            var contact = await _context.ContactMessages
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.ContactMessageId == id);
+
+            if (contact == null)
+            {
+                return NotFound();
+            }
 
             var model = new AdminContactDetailsViewModel
             {

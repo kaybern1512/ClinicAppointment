@@ -1,0 +1,120 @@
+@model ClinicBookingMVC.Models.DoctorSchedule
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Chi tiết lịch làm việc";
+}
+
+<div class="admin-section-card mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-calendar3 me-2"></i>@Model.WorkDate.ToString("dddd, dd/MM/yyyy")</h5>
+            <p class="text-muted mb-0">
+                @if (Model.IsAvailable)
+                {
+                    <span class="badge bg-success">Có sẵn</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Không khả dụng</span>
+                }
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <span class="ms-2">@Model.Notes</span>
+                }
+            </p>
+        </div>
+        <a asp-action="MySchedules" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Quay lại
+        </a>
+    </div>
+</div>
+
+<div class="admin-section-card">
+    <h5 class="mb-3"><i class="bi bi-clock me-2"></i>Danh sách slot</h5>
+
+    @if (Model.DoctorScheduleSlots.Any())
+    {
+        <div class="table-responsive">
+            <table class="table admin-table align-middle">
+                <thead>
+                    <tr>
+                        <th>Khung giờ</th>
+                        <th>Đã đặt / Tối đa</th>
+                        <th>Trạng thái</th>
+                        <th>Bệnh nhân</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var slot in Model.DoctorScheduleSlots.OrderBy(s => s.TimeSlot.StartTime))
+                    {
+                        <tr>
+                            <td>
+                                <strong>@slot.TimeSlot.StartTime.ToString("HH:mm") - @slot.TimeSlot.EndTime.ToString("HH:mm")</strong>
+                                @if (!string.IsNullOrEmpty(slot.TimeSlot.SlotLabel))
+                                {
+                                    <br /><small class="text-muted">@slot.TimeSlot.SlotLabel</small>
+                                }
+                            </td>
+                            <td>
+                                <span class="fw-semibold @(slot.CurrentAppointments >= slot.MaxAppointments ? "text-danger" : "text-success")">
+                                    @slot.CurrentAppointments / @slot.MaxAppointments
+                                </span>
+                            </td>
+                            <td>
+                                @if (slot.IsAvailable)
+                                {
+                                    <span class="badge bg-success">Có sẵn</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Đóng</span>
+                                }
+                            </td>
+                            <td>
+                                @if (slot.Appointments.Any())
+                                {
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var appt in slot.Appointments)
+                                        {
+                                            <li>
+                                                <a asp-action="AppointmentDetails" asp-route-id="@appt.AppointmentId" class="text-decoration-none">
+                                                    @appt.PatientName
+                                                </a>
+                                                <span class="@GetStatusBadge(appt.Status.StatusName) ms-1">@appt.Status.StatusName</span>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Chưa có</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-clock-history fs-1"></i>
+            <p class="mt-2">Chưa có slot nào cho ngày này.</p>
+        </div>
+    }
+</div>
+
+@functions {
+    public string GetStatusBadge(string statusName)
+    {
+        return statusName switch
+        {
+            "Pending" => "badge bg-warning text-dark",
+            "Confirmed" => "badge bg-primary",
+            "Completed" => "badge bg-success",
+            "Cancelled" => "badge bg-danger",
+            _ => "badge bg-secondary"
+        };
+    }
+}

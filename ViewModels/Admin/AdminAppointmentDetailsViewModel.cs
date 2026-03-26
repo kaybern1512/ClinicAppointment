@@ -1,4 +1,4 @@
-﻿namespace ClinicBookingMVC.ViewModels.Admin
+namespace ClinicBookingMVC.ViewModels.Admin
 {
     public class AdminAppointmentDetailsViewModel
     {
@@ -12,6 +12,9 @@
         public TimeOnly AppointmentTime { get; set; }
         public string? Symptoms { get; set; }
         public string StatusName { get; set; } = string.Empty;
+        public string? BookingCode { get; set; }
+        public string? Note { get; set; }
         public DateTime CreatedAt { get; set; }
+        public List<StatusHistoryItemViewModel> StatusHistories { get; set; } = new();
     }
 }

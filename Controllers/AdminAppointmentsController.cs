@@ -1,4 +1,4 @@
-﻿using ClinicBookingMVC.Models;
+using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels.Admin;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -18,6 +18,7 @@ namespace ClinicBookingMVC.Controllers
         private async Task LoadStatusesAsync(AdminAppointmentEditStatusViewModel model)
         {
             model.Statuses = await _context.AppointmentStatuses
+                .AsNoTracking()
                 .Select(s => new SelectListItem
                 {
                     Value = s.StatusId.ToString(),
@@ -33,7 +34,10 @@ namespace ClinicBookingMVC.Controllers
             int? doctorId,
             DateOnly? appointmentDate)
         {
+            keyword = keyword?.Trim();
+
             var query = _context.Appointments
+                .AsNoTracking()
                 .Include(a => a.Doctor)
                 .Include(a => a.Specialty)
                 .Include(a => a.Status)
@@ -48,28 +52,43 @@ namespace ClinicBookingMVC.Controllers
 
             if (statusId.HasValue && statusId > 0)
             {
-                query = query.Where(a => a.StatusId == statusId.Value);
+                query = query.Where(a => a.StatusId == statusId);
             }
 
             if (specialtyId.HasValue && specialtyId > 0)
             {
-                query = query.Where(a => a.SpecialtyId == specialtyId.Value);
+                query = query.Where(a => a.SpecialtyId == specialtyId);
             }
 
             if (doctorId.HasValue && doctorId > 0)
             {
-                query = query.Where(a => a.DoctorId == doctorId.Value);
+                query = query.Where(a => a.DoctorId == doctorId);
             }
 
             if (appointmentDate.HasValue)
             {
-                query = query.Where(a => a.AppointmentDate == appointmentDate.Value);
+                query = query.Where(a => a.AppointmentDate == appointmentDate);
             }
 
             ViewBag.Keyword = keyword;
-            ViewBag.StatusId = new SelectList(await _context.AppointmentStatuses.ToListAsync(), "StatusId", "StatusName", statusId);
-            ViewBag.SpecialtyId = new SelectList(await _context.Specialties.ToListAsync(), "SpecialtyId", "SpecialtyName", specialtyId);
-            ViewBag.DoctorId = new SelectList(await _context.Doctors.ToListAsync(), "DoctorId", "FullName", doctorId);
+            ViewBag.StatusId = new SelectList(
+                await _context.AppointmentStatuses.AsNoTracking().ToListAsync(),
+                "StatusId",
+                "StatusName",
+                statusId);
+
+            ViewBag.SpecialtyId = new SelectList(
+                await _context.Specialties.AsNoTracking().ToListAsync(),
+                "SpecialtyId",
+                "SpecialtyName",
+                specialtyId);
+
+            ViewBag.DoctorId = new SelectList(
+                await _context.Doctors.AsNoTracking().ToListAsync(),
+                "DoctorId",
+                "FullName",
+                doctorId);
+
             ViewBag.AppointmentDate = appointmentDate?.ToString("yyyy-MM-dd");
 
             var model = await query
@@ -93,12 +112,31 @@ namespace ClinicBookingMVC.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var appointment = await _context.Appointments
+                .AsNoTracking()
                 .Include(a => a.Doctor)
                 .Include(a => a.Specialty)
                 .Include(a => a.Status)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id);
 
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
+
+            var statusHistories = await _context.AppointmentStatusHistories
+                .AsNoTracking()
+                .Where(h => h.AppointmentId == id)
+                .Include(h => h.OldStatus)
+                .Include(h => h.NewStatus)
+                .Include(h => h.ChangedByUser)
+                .OrderByDescending(h => h.ChangedAt)
+                .Select(h => new StatusHistoryItemViewModel
+                {
+                    OldStatusName = h.OldStatus != null ? h.OldStatus.StatusName : null,
+                    NewStatusName = h.NewStatus.StatusName,
+                    ChangedByName = h.ChangedByUser != null ? h.ChangedByUser.FullName : "Hệ thống",
+                    ChangedAt = h.ChangedAt,
+                    Note = h.Note
+                })
+                .ToListAsync();
 
             var model = new AdminAppointmentDetailsViewModel
             {
@@ -112,7 +150,10 @@ namespace ClinicBookingMVC.Controllers
                 AppointmentTime = appointment.AppointmentTime,
                 Symptoms = appointment.Symptoms,
                 StatusName = appointment.Status.StatusName,
-                CreatedAt = appointment.CreatedAt
+                BookingCode = appointment.BookingCode,
+                Note = appointment.Note,
+                CreatedAt = appointment.CreatedAt,
+                StatusHistories = statusHistories
             };
 
             return View(model);
@@ -122,7 +163,8 @@ namespace ClinicBookingMVC.Controllers
         public async Task<IActionResult> EditStatus(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
 
             var model = new AdminAppointmentEditStatusViewModel
             {
@@ -139,7 +181,8 @@ namespace ClinicBookingMVC.Controllers
         public async Task<IActionResult> EditStatus(AdminAppointmentEditStatusViewModel model)
         {
             var appointment = await _context.Appointments.FindAsync(model.AppointmentId);
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
 
             if (!ModelState.IsValid)
             {
@@ -147,11 +190,29 @@ namespace ClinicBookingMVC.Controllers
                 return View(model);
             }
 
+            var oldStatusId = appointment.StatusId;
+
+            // Update appointment status
             appointment.StatusId = model.StatusId;
+            appointment.UpdatedAt = DateTime.Now;
+
+            // Record status history
+            var adminUserId = HttpContext.Session.GetInt32("UserId");
+            var history = new AppointmentStatusHistory
+            {
+                AppointmentId = model.AppointmentId,
+                OldStatusId = oldStatusId,
+                NewStatusId = model.StatusId,
+                ChangedByUserId = adminUserId,
+                ChangedAt = DateTime.Now,
+                Note = model.Note?.Trim()
+            };
+            _context.AppointmentStatusHistories.Add(history);
+
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Cập nhật trạng thái lịch hẹn thành công.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Details), new { id = model.AppointmentId });
         }
     }
 }

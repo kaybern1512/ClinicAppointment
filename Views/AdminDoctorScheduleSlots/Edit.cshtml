@@ -1,0 +1,39 @@
+@model ClinicBookingMVC.ViewModels.Admin.AdminSlotEditViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Sửa slot";
+}
+
+<div class="admin-form-card">
+    <h4 class="mb-4"><i class="bi bi-clock me-2"></i>Sửa slot</h4>
+    <p class="text-muted">
+        Khung giờ: <strong>@Model.TimeSlotLabel</strong>
+        (@Model.StartTime.ToString("HH:mm") - @Model.EndTime.ToString("HH:mm"))
+    </p>
+
+    <form asp-action="Edit" method="post">
+        <input asp-for="DoctorScheduleSlotId" type="hidden" />
+        <input asp-for="ScheduleId" type="hidden" />
+
+        <div class="mb-3">
+            <label asp-for="MaxAppointments" class="form-label fw-semibold"></label>
+            <input asp-for="MaxAppointments" type="number" min="1" max="20" class="form-control" style="max-width: 200px;" />
+            <div class="form-text">Hiện tại đã đặt: @Model.CurrentAppointments</div>
+            <span asp-validation-for="MaxAppointments" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input asp-for="IsAvailable" class="form-check-input" />
+            <label asp-for="IsAvailable" class="form-check-label"></label>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu thay đổi</button>
+            <a asp-action="Index" asp-route-scheduleId="@Model.ScheduleId" class="btn btn-outline-secondary">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,4 +1,4 @@
-﻿using ClinicBookingMVC.Models;
+using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels.Admin;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -15,29 +15,32 @@ namespace ClinicBookingMVC.Controllers
             _context = context;
         }
 
-        private async Task LoadSpecialtiesAsync(AdminDoctorCreateViewModel model)
+        private async Task LoadSpecialtiesAsync(object model)
         {
-            model.Specialties = await _context.Specialties
+            var specialties = await _context.Specialties
+                .AsNoTracking()
+                .Where(s => s.IsActive)
                 .Select(s => new SelectListItem
                 {
                     Value = s.SpecialtyId.ToString(),
                     Text = s.SpecialtyName
-                }).ToListAsync();
+                })
+                .ToListAsync();
+
+            if (model is AdminDoctorCreateViewModel createModel)
+                createModel.Specialties = specialties;
+
+            if (model is AdminDoctorEditViewModel editModel)
+                editModel.Specialties = specialties;
         }
 
-        private async Task LoadSpecialtiesAsync(AdminDoctorEditViewModel model)
-        {
-            model.Specialties = await _context.Specialties
-                .Select(s => new SelectListItem
-                {
-                    Value = s.SpecialtyId.ToString(),
-                    Text = s.SpecialtyName
-                }).ToListAsync();
-        }
-
+        [HttpGet]
         public async Task<IActionResult> Index(string? searchTerm, int? specialtyId)
         {
+            searchTerm = searchTerm?.Trim();
+
             var query = _context.Doctors
+                .AsNoTracking()
                 .Include(d => d.Specialty)
                 .AsQueryable();
 
@@ -48,19 +51,19 @@ namespace ClinicBookingMVC.Controllers
 
             if (specialtyId.HasValue && specialtyId > 0)
             {
-                query = query.Where(d => d.SpecialtyId == specialtyId.Value);
+                query = query.Where(d => d.SpecialtyId == specialtyId);
             }
 
             ViewBag.SearchTerm = searchTerm;
             ViewBag.SpecialtyId = new SelectList(
-                await _context.Specialties.ToListAsync(),
+                await _context.Specialties.AsNoTracking().Where(s => s.IsActive).ToListAsync(),
                 "SpecialtyId",
                 "SpecialtyName",
                 specialtyId
             );
 
             var model = await query
-                .OrderBy(d => d.DoctorId)
+                .OrderByDescending(d => d.CreatedAt)
                 .Select(d => new AdminDoctorListItemViewModel
                 {
                     DoctorId = d.DoctorId,
@@ -81,7 +84,8 @@ namespace ClinicBookingMVC.Controllers
         {
             var model = new AdminDoctorCreateViewModel
             {
-                IsActive = true
+                IsActive = true,
+                IsFeatured = false
             };
 
             await LoadSpecialtiesAsync(model);
@@ -92,6 +96,8 @@ namespace ClinicBookingMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AdminDoctorCreateViewModel model)
         {
+            model.FullName = model.FullName?.Trim()!;
+
             if (!ModelState.IsValid)
             {
                 await LoadSpecialtiesAsync(model);
@@ -100,14 +106,15 @@ namespace ClinicBookingMVC.Controllers
 
             var doctor = new Doctor
             {
-                FullName = model.FullName,
+                FullName = model.FullName!,
                 SpecialtyId = model.SpecialtyId,
                 ExperienceYears = model.ExperienceYears,
                 Description = model.Description,
                 ImageUrl = model.ImageUrl,
                 WorkingTime = model.WorkingTime,
                 IsFeatured = model.IsFeatured,
-                IsActive = model.IsActive
+                IsActive = model.IsActive,
+                CreatedAt = DateTime.Now
             };
 
             _context.Doctors.Add(doctor);
@@ -144,6 +151,8 @@ namespace ClinicBookingMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AdminDoctorEditViewModel model)
         {
+            model.FullName = model.FullName?.Trim()!;
+
             var doctor = await _context.Doctors.FindAsync(model.DoctorId);
             if (doctor == null) return NotFound();
 
@@ -153,7 +162,7 @@ namespace ClinicBookingMVC.Controllers
                 return View(model);
             }
 
-            doctor.FullName = model.FullName;
+            doctor.FullName = model.FullName!;
             doctor.SpecialtyId = model.SpecialtyId;
             doctor.ExperienceYears = model.ExperienceYears;
             doctor.Description = model.Description;
@@ -168,9 +177,11 @@ namespace ClinicBookingMVC.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
             var doctor = await _context.Doctors
+                .AsNoTracking()
                 .Include(d => d.Specialty)
                 .FirstOrDefaultAsync(d => d.DoctorId == id);
 

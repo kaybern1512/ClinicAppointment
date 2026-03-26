@@ -1,4 +1,4 @@
-﻿using ClinicBookingMVC.Models;
+using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +14,14 @@ namespace ClinicBookingMVC.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var model = new HomeViewModel
             {
                 FeaturedSpecialties = await _context.Specialties
-                    .Where(s => s.IsFeatured)
+                    .AsNoTracking()
+                    .Where(s => s.IsFeatured && s.IsActive)
                     .Select(s => new SpecialtyViewModel
                     {
                         SpecialtyId = s.SpecialtyId,
@@ -28,9 +30,11 @@ namespace ClinicBookingMVC.Controllers
                         Icon = s.Icon,
                         ImageUrl = s.ImageUrl,
                         IsFeatured = s.IsFeatured
-                    }).ToListAsync(),
+                    })
+                    .ToListAsync(),
 
                 FeaturedDoctors = await _context.Doctors
+                    .AsNoTracking()
                     .Include(d => d.Specialty)
                     .Where(d => d.IsFeatured && d.IsActive)
                     .Select(d => new DoctorViewModel
@@ -44,7 +48,8 @@ namespace ClinicBookingMVC.Controllers
                         ImageUrl = d.ImageUrl,
                         WorkingTime = d.WorkingTime,
                         IsFeatured = d.IsFeatured
-                    }).ToListAsync()
+                    })
+                    .ToListAsync()
             };
 
             return View(model);
@@ -60,6 +65,10 @@ namespace ClinicBookingMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Contact(ContactViewModel model)
         {
+            model.FullName = model.FullName?.Trim()!;
+            model.Email = model.Email?.Trim()!;
+            model.Message = model.Message?.Trim()!;
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -67,17 +76,17 @@ namespace ClinicBookingMVC.Controllers
 
             var entity = new ContactMessage
             {
-                FullName = model.FullName,
-                Email = model.Email,
-                Message = model.Message,
-                SentAt = DateTime.Now
+                FullName = model.FullName!,
+                Email = model.Email!,
+                Message = model.Message!,
+                SentAt = DateTime.Now,
+                IsReplied = false
             };
 
             _context.ContactMessages.Add(entity);
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Gửi liên hệ thành công.";
-            ModelState.Clear();
 
             return View(new ContactViewModel());
         }

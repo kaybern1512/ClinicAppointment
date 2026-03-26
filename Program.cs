@@ -19,6 +19,8 @@ builder.Services.AddSession(options =>
 builder.Services.AddDbContext<ClinicBookingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -34,7 +36,7 @@ app.UseRouting();
 
 app.UseSession();
 
-app.UseAuthorization();
+// app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",

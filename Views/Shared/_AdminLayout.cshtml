@@ -1,6 +1,8 @@
-﻿@using Microsoft.AspNetCore.Identity
-@inject SignInManager<User> SignInManager
-@inject UserManager<User> UserManager
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    var roleName = HttpContextAccessor.HttpContext?.Session.GetString("RoleName");
+}
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -19,44 +21,58 @@
         <aside class="admin-sidebar">
             <div class="admin-brand">
                 <i class="bi bi-hospital"></i>
-                @if (User.IsInRole("Admin"))
+                @if (roleName == "Admin")
                 {
                     <span>Clinic Admin</span>
                 }
-                else if (User.IsInRole("Doctor"))
+                else if (roleName == "Doctor")
                 {
                     <span>Bác sĩ</span>
                 }
             </div>
 
             <nav class="admin-menu">
-                @if (User.IsInRole("Admin"))
+                @if (roleName == "Admin")
                 {
-                    <a asp-controller="AdminDashboard" asp-action="Index">
+                    <a asp-controller="AdminDashboard" asp-action="Index"
+                       class="@IsActive("AdminDashboard")">
                         <i class="bi bi-grid"></i> Dashboard
                     </a>
-                    <a asp-controller="AdminDoctors" asp-action="Index">
+                    <a asp-controller="AdminDoctors" asp-action="Index"
+                       class="@IsActive("AdminDoctors")">
                         <i class="bi bi-person-badge"></i> Quản lý bác sĩ
                     </a>
-                    <a asp-controller="AdminSpecialties" asp-action="Index">
+                    <a asp-controller="AdminSpecialties" asp-action="Index"
+                       class="@IsActive("AdminSpecialties")">
                         <i class="bi bi-list-task"></i> Quản lý chuyên khoa
                     </a>
-                    <a asp-controller="AdminAppointments" asp-action="Index">
+                    <a asp-controller="AdminAppointments" asp-action="Index"
+                       class="@IsActive("AdminAppointments")">
                         <i class="bi bi-calendar-check"></i> Quản lý lịch hẹn
                     </a>
-                    <a asp-controller="AdminUsers" asp-action="Index">
+                    <a asp-controller="AdminDoctorSchedules" asp-action="Index"
+                       class="@IsActive("AdminDoctorSchedules", "AdminDoctorScheduleSlots")">
+                        <i class="bi bi-calendar-week"></i> Lịch bác sĩ & Slot
+                    </a>
+                    <a asp-controller="AdminUsers" asp-action="Index"
+                       class="@IsActive("AdminUsers")">
                         <i class="bi bi-people"></i> Quản lý người dùng
                     </a>
-                    <a asp-controller="AdminContacts" asp-action="Index">
+                    <a asp-controller="AdminContacts" asp-action="Index"
+                       class="@IsActive("AdminContacts")">
                         <i class="bi bi-envelope"></i> Tin nhắn liên hệ
                     </a>
                 }
-                else if (User.IsInRole("Doctor"))
+                else if (roleName == "Doctor")
                 {
-                    <a asp-controller="DoctorDashboard" asp-action="Index">
+                    <a asp-controller="DoctorDashboard" asp-action="Index"
+                       class="@IsActive("DoctorDashboard", null, "Index")">
                         <i class="bi bi-grid"></i> Bảng điều khiển
                     </a>
-                    // Add more doctor-specific links here in the future
+                    <a asp-controller="DoctorDashboard" asp-action="MySchedules"
+                       class="@IsActive("DoctorDashboard", null, "MySchedules", "ScheduleDetails")">
+                        <i class="bi bi-calendar-week"></i> Lịch làm việc
+                    </a>
                 }
                 <a asp-controller="Home" asp-action="Index">
                     <i class="bi bi-arrow-left-circle"></i> Về trang người dùng
@@ -67,12 +83,12 @@
         <div class="admin-main">
             <header class="admin-topbar">
                 <div>
-                    @if (User.IsInRole("Admin"))
+                    @if (roleName == "Admin")
                     {
                         <h4 class="mb-0">Admin Dashboard</h4>
                         <small class="text-muted">Quản trị hệ thống đặt lịch phòng khám</small>
                     }
-                    else if (User.IsInRole("Doctor"))
+                    else if (roleName == "Doctor")
                     {
                         <h4 class="mb-0">Bảng điều khiển Bác sĩ</h4>
                         <small class="text-muted">Quản lý công việc và lịch hẹn của bạn</small>
@@ -82,9 +98,9 @@
                     <span class="admin-avatar">
                         <i class="bi bi-person-circle"></i>
                     </span>
-                    <span class="fw-semibold">@(UserManager.GetUserName(User))</span>
-                    <form asp-area="Identity" asp-controller="Account" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post" id="logoutForm" class="d-inline">
-                         <button type="submit" class="btn btn-outline-primary btn-sm">Đăng xuất</button>
+                    <span class="fw-semibold">@HttpContextAccessor.HttpContext?.Session.GetString("UserFullName")</span>
+                    <form asp-controller="Account" asp-action="Logout" method="get" class="d-inline ms-2">
+                        <button type="submit" class="btn btn-outline-primary btn-sm">Đăng xuất</button>
                     </form>
                 </div>
             </header>
@@ -92,7 +108,23 @@
             <main class="admin-content">
                 @if (TempData["SuccessMessage"] != null)
                 {
-                    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                    <div class="alert alert-success alert-dismissible fade show">
+                        <i class="bi bi-check-circle me-1"></i>@TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i class="bi bi-exclamation-triangle me-1"></i>@TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-1"></i>@ViewBag.ErrorMessage
+                    </div>
                 }
 
                 @RenderBody()
@@ -104,3 +136,26 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+@functions {
+    private string GetCurrentController() =>
+        ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    private string GetCurrentAction() =>
+        ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    public string IsActive(string controller, string? altController = null, params string[] actions)
+    {
+        var currentController = GetCurrentController();
+        var currentAction = GetCurrentAction();
+
+        bool controllerMatch = currentController == controller ||
+                               (altController != null && currentController == altController);
+
+        if (!controllerMatch) return "";
+
+        if (actions.Length == 0) return "active";
+
+        return actions.Contains(currentAction) ? "active" : "";
+    }
+}

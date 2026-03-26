@@ -1,0 +1,89 @@
+@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminSlotListItemViewModel>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Quản lý slot";
+}
+
+<div class="admin-section-card mb-3">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1"><i class="bi bi-clock me-2"></i>Slot lịch làm việc</h5>
+            <p class="text-muted mb-0">
+                <strong>@ViewBag.DoctorName</strong> — Ngày: <strong>@((ViewBag.WorkDate as DateOnly?)?.ToString("dd/MM/yyyy"))</strong>
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Create" asp-route-scheduleId="@ViewBag.ScheduleId" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Thêm slot
+            </a>
+            <a asp-controller="AdminDoctorSchedules" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+}
+
+<div class="admin-section-card">
+    <div class="table-responsive">
+        <table class="table admin-table align-middle">
+            <thead>
+                <tr>
+                    <th>Khung giờ</th>
+                    <th>Bắt đầu</th>
+                    <th>Kết thúc</th>
+                    <th>Đã đặt / Tối đa</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.TimeSlotLabel</td>
+                        <td>@item.StartTime.ToString("HH:mm")</td>
+                        <td>@item.EndTime.ToString("HH:mm")</td>
+                        <td>
+                            <span class="fw-semibold @(item.CurrentAppointments >= item.MaxAppointments ? "text-danger" : "text-success")">
+                                @item.CurrentAppointments / @item.MaxAppointments
+                            </span>
+                        </td>
+                        <td>
+                            @if (item.IsAvailable)
+                            {
+                                <span class="badge bg-success">Có sẵn</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Đóng</span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Edit" asp-route-id="@item.DoctorScheduleSlotId"
+                                   class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil"></i></a>
+                                <form asp-action="Delete" asp-route-id="@item.DoctorScheduleSlotId" method="post"
+                                      onsubmit="return confirm('Xóa slot này?')">
+                                    <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center text-muted py-4">
+            <i class="bi bi-clock-history fs-1"></i>
+            <p class="mt-2">Chưa có slot nào. Bấm "Thêm slot" để tạo mới.</p>
+        </div>
+    }
+</div>

@@ -1,52 +1,44 @@
 using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels.Doctor;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
-using System.Security.Claims;
 
 namespace ClinicBookingMVC.Controllers
 {
-    [Authorize(Roles = "Doctor")]
     public class DoctorDashboardController : Controller
     {
         private readonly ClinicBookingContext _context;
-        private readonly UserManager<User> _userManager;
         private readonly ILogger<DoctorDashboardController> _logger;
 
-        public DoctorDashboardController(ClinicBookingContext context, UserManager<User> userManager, ILogger<DoctorDashboardController> logger)
+        public DoctorDashboardController(ClinicBookingContext context, ILogger<DoctorDashboardController> logger)
         {
             _context = context;
-            _userManager = userManager;
             _logger = logger;
         }
 
+        private bool IsDoctor() => HttpContext.Session.GetString("RoleName") == "Doctor";
+        private string GetUserFullName() => HttpContext.Session.GetString("UserFullName") ?? "";
+
         public async Task<IActionResult> Index()
         {
-            _logger.LogInformation("Doctor Dashboard accessed by user {User}", User.Identity.Name);
+            if (!IsDoctor()) return RedirectToAction("Login", "Account");
+
+            _logger.LogInformation("Doctor Dashboard accessed.");
 
             try
             {
-                var user = await _userManager.GetUserAsync(User);
-                if (user == null)
-                {
-                    _logger.LogWarning("Current user not found for {User}", User.Identity.Name);
-                    return RedirectToAction("Login", "Account");
-                }
-
-                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == user.FullName);
+                var userFullName = GetUserFullName();
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == userFullName);
 
                 if (doctor == null)
                 {
-                    _logger.LogWarning("User {FullName} does not have an associated Doctor entity.", user.FullName);
+                    _logger.LogWarning("User {FullName} does not have an associated Doctor entity.", userFullName);
                     ViewData["ErrorMessage"] = "Không tìm thấy thông tin bác sĩ tương ứng với tên của bạn.";
                     return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
                 }
 
                 var today = DateOnly.FromDateTime(DateTime.Today);
-
                 var appointmentsQuery = _context.Appointments.Where(a => a.DoctorId == doctor.DoctorId);
 
                 var viewModel = new DoctorDashboardViewModel
@@ -61,11 +53,11 @@ namespace ClinicBookingMVC.Controllers
                         .Where(a => a.AppointmentDate >= today && a.Status.StatusName != "Completed" && a.Status.StatusName != "Cancelled")
                         .OrderBy(a => a.AppointmentDate).ThenBy(a => a.AppointmentTime)
                         .Take(10)
-                        .Select(a => new ViewModels.AppointmentListItemViewModel // Specify namespace to avoid ambiguity
+                        .Select(a => new ViewModels.AppointmentListItemViewModel
                         {
                             AppointmentId = a.AppointmentId,
                             PatientName = a.PatientName,
-                            PatientPhoneNumber = a.PhoneNumber, // Corrected property name
+                            PatientPhoneNumber = a.PhoneNumber,
                             AppointmentDate = a.AppointmentDate,
                             AppointmentTime = a.AppointmentTime,
                             StatusName = a.Status.StatusName
@@ -77,7 +69,7 @@ namespace ClinicBookingMVC.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred while fetching data for the Doctor Dashboard for user {User}", User.Identity.Name);
+                _logger.LogError(ex, "An error occurred while fetching data for the Doctor Dashboard.");
                 ViewData["ErrorMessage"] = "Đã có lỗi xảy ra khi tải dữ liệu cho bảng điều khiển.";
                 return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
             }
@@ -85,22 +77,20 @@ namespace ClinicBookingMVC.Controllers
 
         public async Task<IActionResult> AppointmentDetails(int id)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return RedirectToAction("Index");
+            if (!IsDoctor()) return RedirectToAction("Login", "Account");
 
-            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == user.FullName);
+            var userFullName = GetUserFullName();
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == userFullName);
             if (doctor == null) return RedirectToAction("Index");
 
             var appointment = await _context.Appointments
-                .Include(a => a.Patient)
+                .Include(a => a.UserPatient)
                 .Include(a => a.Status)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id && a.DoctorId == doctor.DoctorId);
 
             if (appointment == null) return NotFound();
 
-            var record = await _context.MedicalRecords
-                .FirstOrDefaultAsync(m => m.AppointmentId == id);
-
+            var record = await _context.MedicalRecords.FirstOrDefaultAsync(m => m.AppointmentId == id);
             ViewBag.ExistingRecord = record;
 
             return View(appointment);
@@ -110,10 +100,10 @@ namespace ClinicBookingMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveMedicalRecord(int appointmentId, string diagnosis, string prescription, string doctorNotes)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return RedirectToAction("Index");
+            if (!IsDoctor()) return RedirectToAction("Login", "Account");
 
-            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == user.FullName);
+            var userFullName = GetUserFullName();
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == userFullName);
             if (doctor == null) return RedirectToAction("Index");
 
             var appointment = await _context.Appointments
@@ -122,7 +112,6 @@ namespace ClinicBookingMVC.Controllers
 
             if (appointment == null) return NotFound();
 
-            // Check if record already exists
             var existingRecord = await _context.MedicalRecords.FirstOrDefaultAsync(m => m.AppointmentId == appointmentId);
             if (existingRecord == null)
             {
@@ -136,7 +125,6 @@ namespace ClinicBookingMVC.Controllers
                 };
                 _context.MedicalRecords.Add(newRecord);
 
-                // Update Appointment Status to "Completed" (Find status ID first)
                 var completedStatus = await _context.AppointmentStatuses.FirstOrDefaultAsync(s => s.StatusName == "Completed");
                 if (completedStatus != null)
                 {
@@ -149,6 +137,62 @@ namespace ClinicBookingMVC.Controllers
             }
 
             return RedirectToAction("AppointmentDetails", new { id = appointmentId });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> MySchedules(DateOnly? fromDate)
+        {
+            if (!IsDoctor()) return RedirectToAction("Login", "Account");
+
+            var userFullName = GetUserFullName();
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == userFullName);
+            if (doctor == null) return RedirectToAction("Index");
+
+            var query = _context.DoctorSchedules
+                .AsNoTracking()
+                .Where(s => s.DoctorId == doctor.DoctorId)
+                .Include(s => s.DoctorScheduleSlots)
+                .AsQueryable();
+
+            if (fromDate.HasValue)
+            {
+                query = query.Where(s => s.WorkDate >= fromDate);
+            }
+            else
+            {
+                query = query.Where(s => s.WorkDate >= DateOnly.FromDateTime(DateTime.Today));
+            }
+
+            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+
+            var schedules = await query
+                .OrderBy(s => s.WorkDate)
+                .ToListAsync();
+
+            return View(schedules);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ScheduleDetails(int id)
+        {
+            if (!IsDoctor()) return RedirectToAction("Login", "Account");
+
+            var userFullName = GetUserFullName();
+            var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == userFullName);
+            if (doctor == null) return RedirectToAction("Index");
+
+            var schedule = await _context.DoctorSchedules
+                .AsNoTracking()
+                .Include(s => s.DoctorScheduleSlots)
+                    .ThenInclude(slot => slot.TimeSlot)
+                .Include(s => s.DoctorScheduleSlots)
+                    .ThenInclude(slot => slot.Appointments)
+                        .ThenInclude(a => a.Status)
+                .FirstOrDefaultAsync(s => s.ScheduleId == id && s.DoctorId == doctor.DoctorId);
+
+            if (schedule == null) return NotFound();
+
+            return View(schedule);
         }
     }
 }
