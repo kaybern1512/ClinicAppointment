@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicBookingMVC.Models;
 
+[Index("SpecialtyName", Name = "UQ__Specialt__7DCA57486191A721", IsUnique = true)]
 public partial class Specialty
 {
     [Key]
@@ -24,6 +25,8 @@ public partial class Specialty
     public string? ImageUrl { get; set; }
 
     public bool IsFeatured { get; set; }
+
+    public bool IsActive { get; set; }
 
     [InverseProperty("Specialty")]
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();

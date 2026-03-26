@@ -9,5 +9,6 @@
         public DateOnly AppointmentDate { get; set; }
         public TimeOnly AppointmentTime { get; set; }
         public string StatusName { get; set; } = string.Empty;
+        public string BookingCode { get; set; } = string.Empty;
     }
 }

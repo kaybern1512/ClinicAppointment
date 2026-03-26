@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicBookingMVC.Models;
 
-[Index("Email", Name = "UQ__Users__A9D10534200FD58A", IsUnique = true)]
+[Index("Email", Name = "UQ__Users__A9D1053490230EFD", IsUnique = true)]
 public partial class User
 {
     [Key]
@@ -31,8 +31,17 @@ public partial class User
 
     public bool IsActive { get; set; }
 
-    [InverseProperty("Patient")]
+    [InverseProperty("ChangedByUser")]
+    public virtual ICollection<AppointmentStatusHistory> AppointmentStatusHistories { get; set; } = new List<AppointmentStatusHistory>();
+
+    [InverseProperty("UserPatient")]
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+
+    [InverseProperty("User")]
+    public virtual Doctor? Doctor { get; set; }
+
+    [InverseProperty("User")]
+    public virtual Patient? Patient { get; set; }
 
     [ForeignKey("RoleId")]
     [InverseProperty("Users")]
