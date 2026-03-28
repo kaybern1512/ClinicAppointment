@@ -4,34 +4,53 @@
     ViewData["Title"] = "Sửa slot";
 }
 
-<div class="admin-form-card">
-    <h4 class="mb-4"><i class="bi bi-clock me-2"></i>Sửa slot</h4>
-    <p class="text-muted">
-        Khung giờ: <strong>@Model.TimeSlotLabel</strong>
-        (@Model.StartTime.ToString("HH:mm") - @Model.EndTime.ToString("HH:mm"))
-    </p>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="admin-form-card shadow-lg border-0">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mb-3" style="width: 64px; height: 64px;">
+                    <i class="bi bi-clock fs-2"></i>
+                </div>
+                <h4 class="fw-bold text-dark">Sửa slot làm việc</h4>
+                <div class="alert alert-light border shadow-sm py-2 px-3 mt-3 d-inline-block">
+                    <i class="bi bi-info-circle me-1 text-primary"></i>
+                    Khung giờ: <strong>@Model.TimeSlotLabel</strong> 
+                    <span class="text-muted ms-1">(@Model.StartTime.ToString("HH:mm") - @Model.EndTime.ToString("HH:mm"))</span>
+                </div>
+            </div>
 
-    <form asp-action="Edit" method="post">
-        <input asp-for="DoctorScheduleSlotId" type="hidden" />
-        <input asp-for="ScheduleId" type="hidden" />
+            <form asp-action="Edit" method="post">
+                <input asp-for="DoctorScheduleSlotId" type="hidden" />
+                <input asp-for="ScheduleId" type="hidden" />
 
-        <div class="mb-3">
-            <label asp-for="MaxAppointments" class="form-label fw-semibold"></label>
-            <input asp-for="MaxAppointments" type="number" min="1" max="20" class="form-control" style="max-width: 200px;" />
-            <div class="form-text">Hiện tại đã đặt: @Model.CurrentAppointments</div>
-            <span asp-validation-for="MaxAppointments" class="text-danger"></span>
+                <div class="mb-4 text-center">
+                    <div class="p-3 bg-light rounded-4 d-inline-block border">
+                        <label asp-for="MaxAppointments" class="form-label admin-form-label d-block text-center">Giới hạn bệnh nhân</label>
+                        <input asp-for="MaxAppointments" type="number" min="1" max="20" class="form-control admin-input border-0 shadow-sm text-center fs-4 fw-bold mx-auto" style="max-width: 120px;" />
+                        <div class="text-muted small mt-2">Hiện tại đã đặt: <span class="badge bg-info text-dark">@Model.CurrentAppointments</span></div>
+                    </div>
+                    <span asp-validation-for="MaxAppointments" class="text-danger d-block small mt-1"></span>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check form-switch p-3 bg-light rounded-3 ms-0 ps-5 border shadow-sm">
+                        <input asp-for="IsAvailable" class="form-check-input ms-n4" type="checkbox" style="width: 3em; height: 1.5em;" />
+                        <label asp-for="IsAvailable" class="form-check-label fw-semibold ms-2">Trạng thái slot</label>
+                        <div class="text-muted small ms-2">Nếu tắt, bệnh nhân không thể chọn slot này.</div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 pt-3">
+                    <button type="submit" class="btn btn-primary btn-lg shadow-sm py-3">
+                        <i class="bi bi-save-fill me-2"></i>Lưu thay đổi
+                    </button>
+                    <a asp-action="Index" asp-route-scheduleId="@Model.ScheduleId" class="btn btn-outline-secondary border-0">
+                        Hủy bỏ
+                    </a>
+                </div>
+            </form>
         </div>
-
-        <div class="mb-3 form-check">
-            <input asp-for="IsAvailable" class="form-check-input" />
-            <label asp-for="IsAvailable" class="form-check-label"></label>
-        </div>
-
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu thay đổi</button>
-            <a asp-action="Index" asp-route-scheduleId="@Model.ScheduleId" class="btn btn-outline-secondary">Hủy</a>
-        </div>
-    </form>
+    </div>
 </div>
 
 @section Scripts {

@@ -4,29 +4,38 @@
     ViewData["Title"] = "Quản lý lịch bác sĩ";
 }
 
-<div class="admin-section-card mb-4">
+<div class="admin-section-card mb-4 shadow-sm border-0">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-calendar2-range fs-4 me-2 text-primary"></i>
+        <h5 class="mb-0 fw-bold">Bộ lọc lịch làm việc</h5>
+    </div>
     <form method="get" asp-action="Index">
         <div class="row g-3">
             <div class="col-md-3">
-                <label class="form-label">Bác sĩ</label>
-                <select name="doctorId" asp-items="ViewBag.DoctorId" class="form-select">
-                    <option value="">-- Tất cả --</option>
+                <label class="form-label admin-form-label">Chọn bác sĩ</label>
+                <select name="doctorId" asp-items="ViewBag.DoctorId" class="form-select admin-input border-0 bg-light shadow-sm">
+                    <option value="">-- Tất cả bác sĩ --</option>
                 </select>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Từ ngày</label>
-                <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
+                <label class="form-label admin-form-label">Từ ngày</label>
+                <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control admin-input border-0 bg-light shadow-sm" />
             </div>
             <div class="col-md-3">
-                <label class="form-label">Đến ngày</label>
-                <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" />
+                <label class="form-label admin-form-label">Đến ngày</label>
+                <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control admin-input border-0 bg-light shadow-sm" />
             </div>
             <div class="col-md-3 d-flex align-items-end gap-2">
-                <button class="btn btn-primary"><i class="bi bi-search me-1"></i>Lọc</button>
-                <a asp-action="Create" class="btn btn-success"><i class="bi bi-plus-lg me-1"></i>Tạo lịch</a>
+                <button class="btn btn-primary w-100 shadow-sm"><i class="bi bi-funnel me-1"></i>Lọc</button>
             </div>
         </div>
     </form>
+</div>
+
+<div class="d-flex justify-content-end mb-4">
+    <a asp-action="Create" class="btn btn-success px-4 py-2 shadow-sm rounded-pill">
+        <i class="bi bi-calendar-plus me-2"></i>Tạo lịch làm việc mới
+    </a>
 </div>
 
 @if (TempData["ErrorMessage"] != null)

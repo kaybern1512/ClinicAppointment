@@ -69,6 +69,84 @@ namespace ClinicBookingMVC.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> BatchCreate(int scheduleId)
+        {
+            var schedule = await _context.DoctorSchedules
+                .AsNoTracking()
+                .Include(s => s.Doctor)
+                .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
+
+            if (schedule == null) return NotFound();
+
+            var model = new AdminSlotBatchCreateViewModel
+            {
+                ScheduleId = scheduleId,
+                DoctorName = schedule.Doctor.FullName,
+                WorkDate = schedule.WorkDate,
+                MaxAppointments = 1,
+                AvailableTimeSlots = await GetAvailableTimeSlotsAsync(scheduleId)
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BatchCreate(AdminSlotBatchCreateViewModel model)
+        {
+            if (model.SelectedTimeSlotIds == null || !model.SelectedTimeSlotIds.Any())
+            {
+                ModelState.AddModelError("SelectedTimeSlotIds", "Vui lòng chọn ít nhất một khung giờ.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var schedule = await _context.DoctorSchedules
+                    .AsNoTracking().Include(s => s.Doctor)
+                    .FirstOrDefaultAsync(s => s.ScheduleId == model.ScheduleId);
+                model.DoctorName = schedule?.Doctor.FullName ?? "";
+                model.WorkDate = schedule?.WorkDate ?? DateOnly.MinValue;
+                model.AvailableTimeSlots = await GetAvailableTimeSlotsAsync(model.ScheduleId);
+                return View(model);
+            }
+
+            var existingSlotIds = await _context.DoctorScheduleSlots
+                .Where(s => s.ScheduleId == model.ScheduleId)
+                .Select(s => s.TimeSlotId)
+                .ToListAsync();
+
+            int addedCount = 0;
+            foreach (var timeSlotId in model.SelectedTimeSlotIds)
+            {
+                if (!existingSlotIds.Contains(timeSlotId))
+                {
+                    var slot = new DoctorScheduleSlot
+                    {
+                        ScheduleId = model.ScheduleId,
+                        TimeSlotId = timeSlotId,
+                        MaxAppointments = model.MaxAppointments,
+                        CurrentAppointments = 0,
+                        IsAvailable = true
+                    };
+                    _context.DoctorScheduleSlots.Add(slot);
+                    addedCount++;
+                }
+            }
+
+            if (addedCount > 0)
+            {
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Đã thêm thành công {addedCount} slot.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Không có slot nào mới được thêm.";
+            }
+
+            return RedirectToAction(nameof(Index), new { scheduleId = model.ScheduleId });
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Create(int scheduleId)
         {
             var schedule = await _context.DoctorSchedules

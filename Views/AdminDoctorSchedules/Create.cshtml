@@ -4,40 +4,59 @@
     ViewData["Title"] = "Tạo lịch làm việc";
 }
 
-<div class="admin-form-card">
-    <h4 class="mb-4"><i class="bi bi-calendar-plus me-2"></i>Tạo lịch làm việc mới</h4>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="admin-form-card shadow-lg border-0">
+            <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+                <div class="bg-success bg-opacity-10 text-success p-3 rounded-3 me-3">
+                    <i class="bi bi-calendar-plus fs-3"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0">Tạo lịch làm việc mới</h4>
+                    <p class="text-muted mb-0 small">Thiết lập ngày làm việc cho bác sĩ trong hệ thống</p>
+                </div>
+            </div>
 
-    <form asp-action="Create" method="post">
-        <div class="mb-3">
-            <label asp-for="DoctorId" class="form-label fw-semibold"></label>
-            <select asp-for="DoctorId" asp-items="Model.Doctors" class="form-select">
-                <option value="">-- Chọn bác sĩ --</option>
-            </select>
-            <span asp-validation-for="DoctorId" class="text-danger"></span>
-        </div>
+            <form asp-action="Create" method="post">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label asp-for="DoctorId" class="form-label admin-form-label">Bác sĩ</label>
+                        <select asp-for="DoctorId" asp-items="Model.Doctors" class="form-select admin-input bg-light border-0 shadow-sm">
+                            <option value="">-- Chọn bác sĩ --</option>
+                        </select>
+                        <span asp-validation-for="DoctorId" class="text-danger small"></span>
+                    </div>
 
-        <div class="mb-3">
-            <label asp-for="WorkDate" class="form-label fw-semibold"></label>
-            <input asp-for="WorkDate" type="date" class="form-control" />
-            <span asp-validation-for="WorkDate" class="text-danger"></span>
-        </div>
+                    <div class="col-md-6">
+                        <label asp-for="WorkDate" class="form-label admin-form-label">Ngày làm việc</label>
+                        <input asp-for="WorkDate" type="date" class="form-control admin-input bg-light border-0 shadow-sm" />
+                        <span asp-validation-for="WorkDate" class="text-danger small"></span>
+                    </div>
 
-        <div class="mb-3">
-            <label asp-for="Notes" class="form-label fw-semibold"></label>
-            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Ghi chú (không bắt buộc)"></textarea>
-            <span asp-validation-for="Notes" class="text-danger"></span>
-        </div>
+                    <div class="col-12">
+                        <label asp-for="Notes" class="form-label admin-form-label">Ghi chú bổ sung</label>
+                        <textarea asp-for="Notes" class="form-control admin-input bg-light border-0 shadow-sm" rows="3" placeholder="Ví dụ: Chỉ khám buổi sáng, nghỉ trưa muộn..."></textarea>
+                        <span asp-validation-for="Notes" class="text-danger small"></span>
+                    </div>
 
-        <div class="mb-3 form-check">
-            <input asp-for="IsAvailable" class="form-check-input" />
-            <label asp-for="IsAvailable" class="form-check-label"></label>
-        </div>
+                    <div class="col-12">
+                        <div class="form-check form-switch p-3 bg-light rounded-3 ms-0 ps-5">
+                            <input asp-for="IsAvailable" class="form-check-input ms-n4" type="checkbox" style="width: 3em; height: 1.5em;" />
+                            <label asp-for="IsAvailable" class="form-check-label fw-semibold ms-2">Trạng thái khả dụng</label>
+                            <div class="text-muted small ms-2">Nếu tắt, bệnh nhân sẽ không thể thấy hoặc đặt lịch cho ngày này.</div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Tạo</button>
-            <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+                <div class="d-flex gap-3 mt-5 border-top pt-4">
+                    <button type="submit" class="btn btn-success px-5 shadow-sm">
+                        <i class="bi bi-check-lg me-2"></i>Tạo lịch ngay
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 border-0">Hủy bỏ</a>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
 
 @section Scripts {

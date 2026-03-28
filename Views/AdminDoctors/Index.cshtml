@@ -1,34 +1,41 @@
-﻿@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminDoctorListItemViewModel>
+@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminDoctorListItemViewModel>
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Quản lý bác sĩ";
 }
 
-<div class="admin-section-card mb-4">
+<div class="admin-section-card mb-4 shadow-sm border-0">
+    <div class="d-flex align-items-center mb-4">
+        <i class="bi bi-search fs-4 me-2 text-primary"></i>
+        <h5 class="mb-0 fw-bold">Bộ lọc bác sĩ</h5>
+    </div>
     <form method="get" asp-action="Index">
         <div class="row g-3">
             <div class="col-md-5">
-                <label class="form-label">Tìm theo tên bác sĩ</label>
-                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control" />
+                <label class="form-label admin-form-label">Tên bác sĩ</label>
+                <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control admin-input border-0 bg-light shadow-sm" placeholder="Nhập tên bác sĩ cần tìm..." />
             </div>
             <div class="col-md-4">
-                <label class="form-label">Lọc theo chuyên khoa</label>
-                <select name="specialtyId" asp-items="ViewBag.SpecialtyId" class="form-select">
+                <label class="form-label admin-form-label">Chuyên khoa</label>
+                <select name="specialtyId" asp-items="ViewBag.SpecialtyId" class="form-select admin-input border-0 bg-light shadow-sm">
                     <option value="">-- Tất cả chuyên khoa --</option>
                 </select>
             </div>
             <div class="col-md-3 d-flex align-items-end">
-                <button class="btn btn-primary w-100">Lọc dữ liệu</button>
+                <button class="btn btn-primary w-100 shadow-sm"><i class="bi bi-funnel me-1"></i>Lọc dữ liệu</button>
             </div>
         </div>
     </form>
 </div>
 
-<div class="admin-section-card">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h5 class="mb-0">Danh sách bác sĩ</h5>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i> Thêm mới
+<div class="admin-section-card border-0 shadow-sm overflow-hidden p-0">
+    <div class="bg-success bg-opacity-10 p-4 border-bottom d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="fw-bold mb-1 text-success"><i class="bi bi-person-heart me-2"></i>Danh sách bác sĩ</h5>
+            <p class="text-muted mb-0 small">Quản lý hồ sơ và thông tin bác sĩ</p>
+        </div>
+        <a asp-action="Create" class="btn btn-success btn-sm rounded-pill px-4 shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> Thêm bác sĩ
         </a>
     </div>
 

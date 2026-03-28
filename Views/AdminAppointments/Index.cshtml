@@ -1,40 +1,47 @@
-﻿@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminAppointmentListItemViewModel>
+@model IEnumerable<ClinicBookingMVC.ViewModels.Admin.AdminAppointmentListItemViewModel>
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Quản lý lịch hẹn";
 }
 
-<div class="admin-section-card mb-4">
+<div class="admin-section-card mb-4 shadow-sm border-0">
+    <div class="d-flex align-items-center mb-3">
+        <i class="bi bi-filter-circle fs-4 me-2 text-primary"></i>
+        <h5 class="mb-0">Bộ lọc tìm kiếm</h5>
+    </div>
     <form method="get" asp-action="Index">
         <div class="row g-3">
             <div class="col-md-3">
-                <label class="form-label">Từ khóa</label>
-                <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control" placeholder="Tên bệnh nhân / mã lịch hẹn" />
+                <label class="form-label fw-semibold">Từ khóa</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control border-start-0" placeholder="Tên bệnh nhân / Mã..." />
+                </div>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Trạng thái</label>
+                <label class="form-label fw-semibold">Trạng thái</label>
                 <select name="statusId" asp-items="ViewBag.StatusId" class="form-select">
                     <option value="">-- Tất cả --</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Chuyên khoa</label>
+                <label class="form-label fw-semibold">Chuyên khoa</label>
                 <select name="specialtyId" asp-items="ViewBag.SpecialtyId" class="form-select">
                     <option value="">-- Tất cả --</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Bác sĩ</label>
+                <label class="form-label fw-semibold">Bác sĩ</label>
                 <select name="doctorId" asp-items="ViewBag.DoctorId" class="form-select">
                     <option value="">-- Tất cả --</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Ngày khám</label>
+                <label class="form-label fw-semibold">Ngày khám</label>
                 <input type="date" name="appointmentDate" value="@ViewBag.AppointmentDate" class="form-control" />
             </div>
             <div class="col-md-1 d-flex align-items-end">
-                <button class="btn btn-primary w-100">Lọc</button>
+                <button class="btn btn-primary w-100 shadow-sm"><i class="bi bi-funnel"></i></button>
             </div>
         </div>
     </form>
@@ -73,9 +80,13 @@
                         </td>
                         <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>
-                            <div class="d-flex gap-2">
-                                <a asp-action="Details" asp-route-id="@item.AppointmentId" class="btn btn-outline-secondary btn-sm">Chi tiết</a>
-                                <a asp-action="EditStatus" asp-route-id="@item.AppointmentId" class="btn btn-primary btn-sm">Trạng thái</a>
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-light border" title="Chi tiết">
+                                    <i class="bi bi-eye text-primary"></i>
+                                </a>
+                                <a asp-action="EditStatus" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-light border" title="Đổi trạng thái">
+                                    <i class="bi bi-arrow-repeat text-success"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>

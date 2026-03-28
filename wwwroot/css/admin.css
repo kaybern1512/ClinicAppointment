@@ -146,9 +146,33 @@
 .admin-form-card,
 .admin-details-card {
     background: #fff;
-    border-radius: 18px;
-    padding: 24px;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-section-card:hover {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+}
+
+.admin-form-label {
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 0.5rem;
+}
+
+.admin-input {
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.admin-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .admin-table thead th {

@@ -24,25 +24,29 @@
                 <div class="collapse navbar-collapse" id="mainNavbar">
                     <ul class="navbar-nav ms-auto align-items-lg-center">
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                            <a class="nav-link px-3" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door me-1"></i>Trang chủ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Doctors" asp-action="Index">Bác sĩ</a>
+                            <a class="nav-link px-3" asp-controller="Doctors" asp-action="Index"><i class="bi bi-person-heart me-1"></i>Bác sĩ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Specialties" asp-action="Index">Chuyên khoa</a>
+                            <a class="nav-link px-3" asp-controller="Specialties" asp-action="Index"><i class="bi bi-grid-1x2 me-1"></i>Chuyên khoa</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Appointments" asp-action="Create">Đặt lịch</a>
+                            <a class="nav-link px-3 fw-bold text-primary bg-white rounded-pill ms-lg-2 shadow-sm border" asp-controller="Appointments" asp-action="Create">
+                                <i class="bi bi-calendar-plus me-1"></i>Đặt lịch ngay
+                            </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Appointments" asp-action="MyAppointments">Lịch hẹn của tôi</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="PatientProfile" asp-action="MyRecords">Hồ sơ bệnh án</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Contact">Liên hệ</a>
+                        <li class="nav-item dropdown ms-lg-3">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i>Cá nhân
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 p-2">
+                                <li><a class="dropdown-item rounded-3" asp-controller="Appointments" asp-action="MyAppointments"><i class="bi bi-calendar-check me-2"></i>Lịch hẹn của tôi</a></li>
+                                <li><a class="dropdown-item rounded-3" asp-controller="PatientProfile" asp-action="MyRecords"><i class="bi bi-file-earmark-medical me-2"></i>Hồ sơ bệnh án</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item rounded-3" asp-controller="Home" asp-action="Contact"><i class="bi bi-envelope me-2"></i>Liên hệ hỗ trợ</a></li>
+                            </ul>
                         </li>
 
                         @if (Context.Session.GetString("UserEmail") == null)

@@ -1,0 +1,110 @@
+@model ClinicBookingMVC.ViewModels.Admin.AdminSlotBatchCreateViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Thêm slot hàng loạt";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="admin-form-card shadow-lg border-0">
+            <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+                <div class="bg-primary bg-opacity-10 text-primary p-3 rounded-3 me-3">
+                    <i class="bi bi-stack fs-3"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-0">Thêm slot hàng loạt</h4>
+                    <p class="text-muted mb-0 small">Tạo nhanh nhiều khung giờ khám cho một ngày</p>
+                </div>
+            </div>
+
+            <div class="alert alert-info border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center">
+                <i class="bi bi-person-badge-fill fs-4 me-3"></i>
+                <div>
+                    <strong>@Model.DoctorName</strong> <span class="mx-2 text-muted">|</span> 
+                    Ngày khám: <strong>@Model.WorkDate.ToString("dd/MM/yyyy")</strong>
+                </div>
+            </div>
+
+            <form asp-action="BatchCreate" method="post">
+                <input asp-for="ScheduleId" type="hidden" />
+
+                <div class="mb-5 p-4 bg-light rounded-4 border shadow-sm" style="max-width: 400px;">
+                    <label asp-for="MaxAppointments" class="form-label admin-form-label d-block">Giới hạn bệnh nhân mỗi slot</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-0"><i class="bi bi-people text-primary"></i></span>
+                        <input asp-for="MaxAppointments" type="number" min="1" max="20" class="form-control admin-input border-0 shadow-none fs-5 fw-bold" />
+                    </div>
+                    <span asp-validation-for="MaxAppointments" class="text-danger small"></span>
+                    <p class="text-muted small mt-2 mb-0"><i class="bi bi-info-circle me-1"></i>Áp dụng cho mọi khung giờ được chọn bên dưới.</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label admin-form-label d-block mb-3 fs-5">Chọn các khung giờ muốn tạo:</label>
+                    <div class="row g-3">
+                        @foreach (var ts in Model.AvailableTimeSlots)
+                        {
+                            <div class="col-lg-3 col-md-4 col-6">
+                                <label class="time-slot-checkbox-card" for="ts_@ts.Value">
+                                    <input class="form-check-input d-none" type="checkbox" name="SelectedTimeSlotIds" value="@ts.Value" id="ts_@ts.Value">
+                                    <div class="time-slot-inner p-3 text-center rounded-3 border transition h-100">
+                                        <i class="bi bi-clock me-1 mb-2 d-block"></i>
+                                        <span class="fw-bold">@ts.Text</span>
+                                    </div>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                    <span asp-validation-for="SelectedTimeSlotIds" class="text-danger small d-block mt-3"></span>
+                    
+                    @if (!Model.AvailableTimeSlots.Any())
+                    {
+                        <div class="text-center p-5 border rounded-4 bg-light mt-2 shadow-sm">
+                            <i class="bi bi-calendar-check fs-1 text-success opacity-50 mb-3 d-block"></i>
+                            <h5 class="fw-bold">Tuyệt vời!</h5>
+                            <p class="text-muted mb-0">Tất cả khung giờ đều đã được tạo cho ngày này.</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex gap-3 pt-4 border-top mt-5">
+                    <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill" @(Model.AvailableTimeSlots.Any() ? "" : "disabled")>
+                        <i class="bi bi-plus-circle-fill me-2"></i>Tạo các slot đã chọn
+                    </button>
+                    <a asp-action="Index" asp-route-scheduleId="@Model.ScheduleId" class="btn btn-outline-secondary btn-lg px-4 border-0">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .time-slot-checkbox-card {
+        cursor: pointer;
+        display: block;
+        height: 100%;
+    }
+    .time-slot-inner {
+        background: #fff;
+        border: 2px solid #f1f5f9;
+        color: #64748b;
+    }
+    .time-slot-checkbox-card input:checked + .time-slot-inner {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+        color: #2563eb;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        transform: translateY(-2px);
+    }
+    .time-slot-inner:hover {
+        border-color: #e2e8f0;
+        background-color: #f8fafc;
+    }
+    .time-slot-inner i {
+        font-size: 1.2rem;
+    }
+    .transition { transition: all 0.2s ease; }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

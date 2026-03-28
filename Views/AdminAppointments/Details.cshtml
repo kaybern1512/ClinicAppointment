@@ -4,37 +4,69 @@
     ViewData["Title"] = "Chi tiết lịch hẹn";
 }
 
-<div class="admin-details-card">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0"><i class="bi bi-clipboard2-pulse me-2"></i>Chi tiết lịch hẹn #@Model.AppointmentId</h4>
-        <span class="@GetStatusBadge(Model.StatusName) fs-6">@Model.StatusName</span>
+<div class="admin-details-card mb-4 shadow-sm border-0">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+        <h4 class="mb-0 text-primary fw-bold">
+            <i class="bi bi-clipboard2-pulse-fill me-2"></i>Chi tiết lịch hẹn #@Model.AppointmentId
+        </h4>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+            <span class="@GetStatusBadge(Model.StatusName) px-3 py-2 fs-6 shadow-sm">@Model.StatusName</span>
+        </div>
     </div>
 
-    <div class="row g-3">
-        <div class="col-md-6"><strong>Mã đặt lịch:</strong> @Model.BookingCode</div>
-        <div class="col-md-6"><strong>Bệnh nhân:</strong> @Model.PatientName</div>
-        <div class="col-md-6"><strong>Số điện thoại:</strong> @Model.PhoneNumber</div>
-        <div class="col-md-6"><strong>Email:</strong> @Model.Email</div>
-        <div class="col-md-6"><strong>Bác sĩ:</strong> @Model.DoctorName</div>
-        <div class="col-md-6"><strong>Chuyên khoa:</strong> @Model.SpecialtyName</div>
-        <div class="col-md-6"><strong>Ngày khám:</strong> @Model.AppointmentDate.ToString("dd/MM/yyyy")</div>
-        <div class="col-md-6"><strong>Giờ khám:</strong> @Model.AppointmentTime.ToString("HH:mm")</div>
-        <div class="col-md-6"><strong>Ngày tạo:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="p-3 bg-light rounded-3 h-100">
+                <h6 class="text-muted mb-3 text-uppercase small fw-bold">Thông tin bệnh nhân</h6>
+                <p class="mb-2"><strong>Tên:</strong> @Model.PatientName</p>
+                <p class="mb-2"><strong>Điện thoại:</strong> @Model.PhoneNumber</p>
+                <p class="mb-0"><strong>Email:</strong> @Model.Email</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-light rounded-3 h-100">
+                <h6 class="text-muted mb-3 text-uppercase small fw-bold">Thông tin khám</h6>
+                <p class="mb-2"><strong>Bác sĩ:</strong> @Model.DoctorName</p>
+                <p class="mb-2"><strong>Chuyên khoa:</strong> @Model.SpecialtyName</p>
+                <p class="mb-0"><strong>Mã booking:</strong> <span class="badge bg-white text-dark border">@Model.BookingCode</span></p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-light rounded-3 h-100">
+                <h6 class="text-muted mb-3 text-uppercase small fw-bold">Thời gian đặt</h6>
+                <p class="mb-2"><strong>Ngày khám:</strong> <span class="text-primary fw-bold">@Model.AppointmentDate.ToString("dd/MM/yyyy")</span></p>
+                <p class="mb-0"><strong>Giờ khám:</strong> <span class="text-primary fw-bold">@Model.AppointmentTime.ToString("HH:mm")</span></p>
+            </div>
+        </div>
+        
         @if (!string.IsNullOrEmpty(Model.Symptoms))
         {
-            <div class="col-12"><strong>Triệu chứng:</strong> @Model.Symptoms</div>
+            <div class="col-12">
+                <div class="p-3 border rounded-3 bg-white">
+                    <h6 class="text-muted mb-2 text-uppercase small fw-bold">Triệu chứng</h6>
+                    <div class="p-2">@Model.Symptoms</div>
+                </div>
+            </div>
         }
         @if (!string.IsNullOrEmpty(Model.Note))
         {
-            <div class="col-12"><strong>Ghi chú:</strong> @Model.Note</div>
+            <div class="col-12">
+                <div class="p-3 border rounded-3 bg-white border-warning border-opacity-25">
+                    <h6 class="text-muted mb-2 text-uppercase small fw-bold">Ghi chú từ admin</h6>
+                    <div class="p-2">@Model.Note</div>
+                </div>
+            </div>
         }
     </div>
 
-    <div class="mt-4 d-flex gap-2">
-        <a asp-action="EditStatus" asp-route-id="@Model.AppointmentId" class="btn btn-primary">
-            <i class="bi bi-arrow-repeat me-1"></i>Cập nhật trạng thái
+    <div class="mt-4 pt-4 border-top d-flex gap-2">
+        <a asp-action="EditStatus" asp-route-id="@Model.AppointmentId" class="btn btn-primary px-4 shadow-sm">
+            <i class="bi bi-arrow-repeat me-2"></i>Cập nhật trạng thái
         </a>
-        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại danh sách</a>
+        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+            <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách
+        </a>
     </div>
 </div>
 
