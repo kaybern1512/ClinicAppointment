@@ -14,9 +14,14 @@ namespace ClinicBookingMVC.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var model = await _context.Specialties
+                .AsNoTracking()
+                .Where(s => s.IsActive)
+                .OrderByDescending(s => s.IsFeatured)
+                .ThenBy(s => s.SpecialtyName)
                 .Select(s => new SpecialtyViewModel
                 {
                     SpecialtyId = s.SpecialtyId,
@@ -25,7 +30,8 @@ namespace ClinicBookingMVC.Controllers
                     Icon = s.Icon,
                     ImageUrl = s.ImageUrl,
                     IsFeatured = s.IsFeatured
-                }).ToListAsync();
+                })
+                .ToListAsync();
 
             return View(model);
         }

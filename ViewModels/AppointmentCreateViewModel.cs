@@ -43,10 +43,9 @@ namespace ClinicBookingMVC.ViewModels
         [Display(Name = "Ngày khám")]
         public DateOnly AppointmentDate { get; set; }
 
-        [Required(ErrorMessage = "Vui lòng chọn giờ khám.")]
-        [DataType(DataType.Time)]
-        [Display(Name = "Giờ khám")]
-        public TimeOnly AppointmentTime { get; set; }
+        [Required(ErrorMessage = "Vui lòng chọn khung giờ khám.")]
+        [Display(Name = "Khung giờ khám")]
+        public int DoctorScheduleSlotId { get; set; }
 
         [StringLength(1000)]
         [Display(Name = "Triệu chứng / Ghi chú")]
@@ -54,5 +53,6 @@ namespace ClinicBookingMVC.ViewModels
 
         public IEnumerable<SelectListItem> Specialties { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> Doctors { get; set; } = new List<SelectListItem>();
+        public IEnumerable<SelectListItem> ScheduleSlots { get; set; } = new List<SelectListItem>();
     }
 }

@@ -69,9 +69,11 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label asp-for="AppointmentTime" class="form-label"></label>
-                            <input asp-for="AppointmentTime" class="form-control" />
-                            <span asp-validation-for="AppointmentTime" class="text-danger"></span>
+                            <label asp-for="DoctorScheduleSlotId" class="form-label"></label>
+                            <select asp-for="DoctorScheduleSlotId" asp-items="Model.ScheduleSlots" class="form-select">
+                                <option value="">-- Chọn khung giờ --</option>
+                            </select>
+                            <span asp-validation-for="DoctorScheduleSlotId" class="text-danger"></span>
                         </div>
 
                         <div class="col-12">

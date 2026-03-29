@@ -1,30 +1,29 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-namespace ClinicBookingMVC.Models
+namespace ClinicBookingMVC.Models;
+
+public partial class TimeSlot
 {
-    public class TimeSlot
-    {
-        [Key]
-        public int TimeSlotId { get; set; }
+    [Key]
+    public int TimeSlotId { get; set; }
 
-        [Required]
-        public int DoctorId { get; set; }
+    public TimeOnly StartTime { get; set; }
 
-        [ForeignKey("DoctorId")]
-        public virtual Doctor? Doctor { get; set; }
+    public TimeOnly EndTime { get; set; }
 
-        [Required]
-        public DateTime Date { get; set; }
+    [StringLength(50)]
+    public string? SlotLabel { get; set; }
 
-        [Required]
-        public TimeSpan StartTime { get; set; }
+    public bool IsActive { get; set; }
 
-        [Required]
-        public TimeSpan EndTime { get; set; }
+    [InverseProperty("TimeSlot")]
+    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
-        [Required]
-        public bool IsAvailable { get; set; } = true;
-    }
+    [InverseProperty("TimeSlot")]
+    public virtual ICollection<DoctorScheduleSlot> DoctorScheduleSlots { get; set; } = new List<DoctorScheduleSlot>();
 }
 

@@ -14,10 +14,13 @@ namespace ClinicBookingMVC.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var model = await _context.Specialties
-                .OrderBy(s => s.SpecialtyId)
+                .AsNoTracking()
+                .OrderByDescending(s => s.IsFeatured)
+                .ThenBy(s => s.SpecialtyName)
                 .Select(s => new AdminSpecialtyListItemViewModel
                 {
                     SpecialtyId = s.SpecialtyId,
@@ -35,13 +38,24 @@ namespace ClinicBookingMVC.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View(new AdminSpecialtyCreateViewModel());
+            var model = new AdminSpecialtyCreateViewModel();
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AdminSpecialtyCreateViewModel model)
         {
+            model.SpecialtyName = model.SpecialtyName?.Trim();
+            model.Description = model.Description?.Trim();
+            model.Icon = model.Icon?.Trim();
+            model.ImageUrl = model.ImageUrl?.Trim();
+
+            if (await _context.Specialties.AnyAsync(s => s.SpecialtyName == model.SpecialtyName))
+            {
+                ModelState.AddModelError("SpecialtyName", "Tên chuyên khoa đã tồn tại.");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -49,11 +63,12 @@ namespace ClinicBookingMVC.Controllers
 
             var specialty = new Specialty
             {
-                SpecialtyName = model.SpecialtyName,
+                SpecialtyName = model.SpecialtyName!,
                 Description = model.Description,
                 Icon = model.Icon,
                 ImageUrl = model.ImageUrl,
-                IsFeatured = model.IsFeatured
+                IsFeatured = model.IsFeatured,
+                IsActive = true
             };
 
             _context.Specialties.Add(specialty);
@@ -67,7 +82,10 @@ namespace ClinicBookingMVC.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var specialty = await _context.Specialties.FindAsync(id);
-            if (specialty == null) return NotFound();
+            if (specialty == null)
+            {
+                return NotFound();
+            }
 
             var model = new AdminSpecialtyEditViewModel
             {
@@ -86,15 +104,32 @@ namespace ClinicBookingMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AdminSpecialtyEditViewModel model)
         {
+            model.SpecialtyName = model.SpecialtyName?.Trim();
+            model.Description = model.Description?.Trim();
+            model.Icon = model.Icon?.Trim();
+            model.ImageUrl = model.ImageUrl?.Trim();
+
             var specialty = await _context.Specialties.FindAsync(model.SpecialtyId);
-            if (specialty == null) return NotFound();
+            if (specialty == null)
+            {
+                return NotFound();
+            }
+
+            bool isDuplicateName = await _context.Specialties.AnyAsync(s =>
+                s.SpecialtyId != model.SpecialtyId &&
+                s.SpecialtyName == model.SpecialtyName);
+
+            if (isDuplicateName)
+            {
+                ModelState.AddModelError("SpecialtyName", "Tên chuyên khoa đã tồn tại.");
+            }
 
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            specialty.SpecialtyName = model.SpecialtyName;
+            specialty.SpecialtyName = model.SpecialtyName!;
             specialty.Description = model.Description;
             specialty.Icon = model.Icon;
             specialty.ImageUrl = model.ImageUrl;
@@ -106,12 +141,17 @@ namespace ClinicBookingMVC.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
             var specialty = await _context.Specialties
+                .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.SpecialtyId == id);
 
-            if (specialty == null) return NotFound();
+            if (specialty == null)
+            {
+                return NotFound();
+            }
 
             var model = new AdminSpecialtyListItemViewModel
             {

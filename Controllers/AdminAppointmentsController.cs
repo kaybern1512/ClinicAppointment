@@ -18,6 +18,7 @@ namespace ClinicBookingMVC.Controllers
         private async Task LoadStatusesAsync(AdminAppointmentEditStatusViewModel model)
         {
             model.Statuses = await _context.AppointmentStatuses
+                .AsNoTracking()
                 .Select(s => new SelectListItem
                 {
                     Value = s.StatusId.ToString(),
@@ -33,7 +34,10 @@ namespace ClinicBookingMVC.Controllers
             int? doctorId,
             DateOnly? appointmentDate)
         {
+            keyword = keyword?.Trim();
+
             var query = _context.Appointments
+                .AsNoTracking()
                 .Include(a => a.Doctor)
                 .Include(a => a.Specialty)
                 .Include(a => a.Status)
@@ -48,28 +52,43 @@ namespace ClinicBookingMVC.Controllers
 
             if (statusId.HasValue && statusId > 0)
             {
-                query = query.Where(a => a.StatusId == statusId.Value);
+                query = query.Where(a => a.StatusId == statusId);
             }
 
             if (specialtyId.HasValue && specialtyId > 0)
             {
-                query = query.Where(a => a.SpecialtyId == specialtyId.Value);
+                query = query.Where(a => a.SpecialtyId == specialtyId);
             }
 
             if (doctorId.HasValue && doctorId > 0)
             {
-                query = query.Where(a => a.DoctorId == doctorId.Value);
+                query = query.Where(a => a.DoctorId == doctorId);
             }
 
             if (appointmentDate.HasValue)
             {
-                query = query.Where(a => a.AppointmentDate == appointmentDate.Value);
+                query = query.Where(a => a.AppointmentDate == appointmentDate);
             }
 
             ViewBag.Keyword = keyword;
-            ViewBag.StatusId = new SelectList(await _context.AppointmentStatuses.ToListAsync(), "StatusId", "StatusName", statusId);
-            ViewBag.SpecialtyId = new SelectList(await _context.Specialties.ToListAsync(), "SpecialtyId", "SpecialtyName", specialtyId);
-            ViewBag.DoctorId = new SelectList(await _context.Doctors.ToListAsync(), "DoctorId", "FullName", doctorId);
+            ViewBag.StatusId = new SelectList(
+                await _context.AppointmentStatuses.AsNoTracking().ToListAsync(),
+                "StatusId",
+                "StatusName",
+                statusId);
+
+            ViewBag.SpecialtyId = new SelectList(
+                await _context.Specialties.AsNoTracking().ToListAsync(),
+                "SpecialtyId",
+                "SpecialtyName",
+                specialtyId);
+
+            ViewBag.DoctorId = new SelectList(
+                await _context.Doctors.AsNoTracking().ToListAsync(),
+                "DoctorId",
+                "FullName",
+                doctorId);
+
             ViewBag.AppointmentDate = appointmentDate?.ToString("yyyy-MM-dd");
 
             var model = await query
@@ -93,12 +112,14 @@ namespace ClinicBookingMVC.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var appointment = await _context.Appointments
+                .AsNoTracking()
                 .Include(a => a.Doctor)
                 .Include(a => a.Specialty)
                 .Include(a => a.Status)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id);
 
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
 
             var model = new AdminAppointmentDetailsViewModel
             {
@@ -122,7 +143,8 @@ namespace ClinicBookingMVC.Controllers
         public async Task<IActionResult> EditStatus(int id)
         {
             var appointment = await _context.Appointments.FindAsync(id);
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
 
             var model = new AdminAppointmentEditStatusViewModel
             {
@@ -139,7 +161,8 @@ namespace ClinicBookingMVC.Controllers
         public async Task<IActionResult> EditStatus(AdminAppointmentEditStatusViewModel model)
         {
             var appointment = await _context.Appointments.FindAsync(model.AppointmentId);
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
 
             if (!ModelState.IsValid)
             {
@@ -148,6 +171,8 @@ namespace ClinicBookingMVC.Controllers
             }
 
             appointment.StatusId = model.StatusId;
+            appointment.UpdatedAt = DateTime.Now;
+
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Cập nhật trạng thái lịch hẹn thành công.";

@@ -14,9 +14,11 @@ namespace ClinicBookingMVC.Controllers
             _context = context;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             var model = await _context.Users
+                .AsNoTracking()
                 .Include(u => u.Role)
                 .OrderByDescending(u => u.CreatedAt)
                 .Select(u => new AdminUserListItemViewModel
@@ -34,9 +36,11 @@ namespace ClinicBookingMVC.Controllers
             return View(model);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
             var user = await _context.Users
+                .AsNoTracking()
                 .Include(u => u.Role)
                 .Include(u => u.Appointments)
                     .ThenInclude(a => a.Doctor)
@@ -46,7 +50,10 @@ namespace ClinicBookingMVC.Controllers
                     .ThenInclude(a => a.Status)
                 .FirstOrDefaultAsync(u => u.UserId == id);
 
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                return NotFound();
+            }
 
             var model = new AdminUserDetailsViewModel
             {
@@ -69,7 +76,8 @@ namespace ClinicBookingMVC.Controllers
                         AppointmentTime = a.AppointmentTime,
                         StatusName = a.Status.StatusName,
                         CreatedAt = a.CreatedAt
-                    }).ToList()
+                    })
+                    .ToList()
             };
 
             return View(model);
