@@ -203,5 +203,42 @@ namespace ClinicBookingMVC.Controllers
 
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var doctor = await _context.Doctors
+                .Include(d => d.Specialty)
+                .FirstOrDefaultAsync(d => d.DoctorId == id);
+
+            if (doctor == null) return NotFound();
+
+            var model = new AdminDoctorListItemViewModel
+            {
+                DoctorId = doctor.DoctorId,
+                FullName = doctor.FullName,
+                SpecialtyName = doctor.Specialty!.SpecialtyName,
+                ExperienceYears = doctor.ExperienceYears,
+                ImageUrl = doctor.ImageUrl,
+                IsFeatured = doctor.IsFeatured,
+                IsActive = doctor.IsActive
+            };
+
+            return View(model);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var doctor = await _context.Doctors.FindAsync(id);
+            if (doctor == null) return NotFound();
+
+            doctor.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Xóa bác sĩ thành công.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

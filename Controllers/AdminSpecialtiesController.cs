@@ -165,5 +165,45 @@ namespace ClinicBookingMVC.Controllers
 
             return View(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var specialty = await _context.Specialties.AsNoTracking().FirstOrDefaultAsync(s => s.SpecialtyId == id);
+            if (specialty == null) return NotFound();
+
+            var model = new AdminSpecialtyListItemViewModel
+            {
+                SpecialtyId = specialty.SpecialtyId,
+                SpecialtyName = specialty.SpecialtyName,
+                Description = specialty.Description,
+                Icon = specialty.Icon,
+                ImageUrl = specialty.ImageUrl,
+                IsFeatured = specialty.IsFeatured
+            };
+
+            return View(model);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var specialty = await _context.Specialties.FindAsync(id);
+            if (specialty == null) return NotFound();
+
+            // Check dependencies
+            if (await _context.Doctors.AnyAsync(d => d.SpecialtyId == id && d.IsActive))
+            {
+                TempData["ErrorMessage"] = "Không thể xóa chuyên khoa đang có bác sĩ hoạt động.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            specialty.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Xóa chuyên khoa thành công.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
