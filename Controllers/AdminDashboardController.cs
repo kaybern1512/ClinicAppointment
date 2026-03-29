@@ -1,11 +1,13 @@
 ﻿using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels.Admin;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace ClinicBookingMVC.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminDashboardController : Controller
     {
         private readonly ClinicBookingContext _context;

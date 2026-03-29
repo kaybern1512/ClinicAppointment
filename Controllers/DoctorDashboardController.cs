@@ -1,5 +1,6 @@
 using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels.Doctor;
+using ClinicBookingMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,8 @@ namespace ClinicBookingMVC.Controllers
                 {
                     _logger.LogWarning("Could not parse user ID for user {User}", User.Identity.Name);
                     ViewData["ErrorMessage"] = "Không thể xác thực ID người dùng.";
-                    return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+                    return View("Error", new ClinicBookingMVC.ViewModels.ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+
                 }
 
                 var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == userId);
@@ -43,7 +45,8 @@ namespace ClinicBookingMVC.Controllers
                 {
                     _logger.LogWarning("User with ID {UserId} and role Doctor does not have an associated Doctor entity.", userId);
                     ViewData["ErrorMessage"] = "Không tìm thấy thông tin bác sĩ tương ứng với tài khoản của bạn.";
-                    return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+                    return View("Error", new ClinicBookingMVC.ViewModels.ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+
                 }
 
                 var today = DateOnly.FromDateTime(DateTime.Today);
@@ -80,7 +83,7 @@ namespace ClinicBookingMVC.Controllers
             {
                 _logger.LogError(ex, "An error occurred while fetching data for the Doctor Dashboard for user {User}", User.Identity.Name);
                 ViewData["ErrorMessage"] = "Đã có lỗi xảy ra khi tải dữ liệu cho bảng điều khiển.";
-                return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+                return View("Error", new ClinicBookingMVC.ViewModels.ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
             }
         }
     }

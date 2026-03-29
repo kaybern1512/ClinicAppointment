@@ -1,11 +1,13 @@
 ﻿using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels.Admin;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicBookingMVC.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminDoctorsController : Controller
     {
         private readonly ClinicBookingContext _context;
@@ -202,6 +204,29 @@ namespace ClinicBookingMVC.Controllers
             ViewBag.WorkingTime = doctor.WorkingTime;
 
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var doctor = await _context.Doctors.FindAsync(id);
+            if (doctor == null) return NotFound();
+
+            return View(doctor);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var doctor = await _context.Doctors.FindAsync(id);
+            if (doctor == null) return NotFound();
+
+            doctor.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Vô hiệu hóa bác sĩ thành công.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }
