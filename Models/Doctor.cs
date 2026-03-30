@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -45,7 +45,7 @@ public partial class Doctor
 
     [InverseProperty("Doctor")]
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
-    
+
     [InverseProperty("Doctor")]
     public virtual ICollection<DoctorSchedule> DoctorSchedules { get; set; } = new List<DoctorSchedule>();
 
@@ -57,4 +57,3 @@ public partial class Doctor
     [InverseProperty("Doctor")]
     public virtual User? User { get; set; }
 }
-

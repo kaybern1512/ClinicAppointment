@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
@@ -42,12 +42,13 @@ public partial class ClinicBookingContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<MedicalRecord> MedicalRecords { get; set; }
-    public virtual DbSet<DoctorReview> DoctorReviews { get; set; }
-    public virtual DbSet<FamilyMember> FamilyMembers { get; set; }
 
+    public virtual DbSet<DoctorReview> DoctorReviews { get; set; }
+
+    public virtual DbSet<FamilyMember> FamilyMembers { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=DESKTOP-1TUBGEU\\SQLEXPRESS;Database=ClinicBooking;User Id=sa;Password=123456;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,7 +84,47 @@ public partial class ClinicBookingContext : DbContext
 
             entity.HasOne(d => d.UserPatient).WithMany(p => p.Appointments).HasConstraintName("FK_Appointments_Users");
         });
+        modelBuilder.Entity<MedicalRecord>(entity =>
+        {
+            entity.HasKey(e => e.RecordId);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
 
+            entity.HasOne(d => d.Appointment)
+                  .WithMany()
+                  .HasForeignKey(d => d.AppointmentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DoctorReview>(entity =>
+        {
+            entity.HasKey(e => e.ReviewId);
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Doctor)
+                  .WithMany()
+                  .HasForeignKey(d => d.DoctorId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Patient)
+                  .WithMany()
+                  .HasForeignKey(d => d.PatientId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(d => d.Appointment)
+                  .WithMany()
+                  .HasForeignKey(d => d.AppointmentId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<FamilyMember>(entity =>
+        {
+            entity.HasKey(e => e.MemberId);
+
+            entity.HasOne(d => d.Patient)
+                  .WithMany()
+                  .HasForeignKey(d => d.PatientId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
         modelBuilder.Entity<AppointmentStatus>(entity =>
         {
             entity.HasKey(e => e.StatusId).HasName("PK__Appointm__C8EE2063FF069F87");
@@ -125,12 +166,8 @@ public partial class ClinicBookingContext : DbContext
             entity.HasOne(d => d.Specialty).WithMany(p => p.Doctors)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Doctors_Specialties");
-            // The Doctors table does not actually have a UserId column in the database schema.
-            // Explicitly defining this one-to-one relationship causes "Invalid column name 'UserId'" runtime errors.
-            // entity.HasOne(d => d.User)
-            //       .WithOne(p => p.Doctor)
-            //       .HasForeignKey<Doctor>(d => d.UserId)
-            //       .OnDelete(DeleteBehavior.ClientSetNull);
+
+            entity.HasOne(d => d.User).WithOne(p => p.Doctor).HasConstraintName("FK_Doctors_Users");
         });
 
         modelBuilder.Entity<DoctorSchedule>(entity =>
@@ -188,8 +225,6 @@ public partial class ClinicBookingContext : DbContext
             entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1AD3B39B06");
         });
 
-
-
         modelBuilder.Entity<Specialty>(entity =>
         {
             entity.HasKey(e => e.SpecialtyId).HasName("PK__Specialt__D768F6A8FD3FF84C");
@@ -204,8 +239,6 @@ public partial class ClinicBookingContext : DbContext
             entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
-
-
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CDD68CD99");
@@ -218,51 +251,8 @@ public partial class ClinicBookingContext : DbContext
                 .HasConstraintName("FK_Users_Roles");
         });
 
-        modelBuilder.Entity<MedicalRecord>(entity =>
-        {
-            entity.HasKey(e => e.RecordId);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-
-            entity.HasOne(d => d.Appointment)
-                  .WithMany()
-                  .HasForeignKey(d => d.AppointmentId)
-                  .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        modelBuilder.Entity<DoctorReview>(entity =>
-        {
-            entity.HasKey(e => e.ReviewId);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
-
-            entity.HasOne(d => d.Doctor)
-                  .WithMany()
-                  .HasForeignKey(d => d.DoctorId)
-                  .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(d => d.Patient)
-                  .WithMany()
-                  .HasForeignKey(d => d.PatientId)
-                  .OnDelete(DeleteBehavior.NoAction);
-
-            entity.HasOne(d => d.Appointment)
-                  .WithMany()
-                  .HasForeignKey(d => d.AppointmentId)
-                  .OnDelete(DeleteBehavior.NoAction);
-        });
-
-        modelBuilder.Entity<FamilyMember>(entity =>
-        {
-            entity.HasKey(e => e.MemberId);
-
-            entity.HasOne(d => d.Patient)
-                  .WithMany()
-                  .HasForeignKey(d => d.PatientId)
-                  .OnDelete(DeleteBehavior.Cascade);
-        });
-
         OnModelCreatingPartial(modelBuilder);
     }
-
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

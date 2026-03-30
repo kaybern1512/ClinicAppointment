@@ -3,6 +3,14 @@
     ViewData["Title"] = "Đặt lịch khám";
 }
 
+<style>
+    .field-validation-error,
+    .validation-summary-errors,
+    .input-validation-error {
+        display: none;
+    }
+</style>
+
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm appointment-form-card">
@@ -10,6 +18,8 @@
                 <h2 class="mb-4">Đặt lịch khám</h2>
 
                 <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label asp-for="PatientName" class="form-label"></label>
@@ -110,59 +120,154 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             var $specialtySelect = $('#SpecialtyId');
             var $doctorSelect = $('#DoctorId');
             var $dateInput = $('#AppointmentDate');
             var $slotSelect = $('#DoctorScheduleSlotId');
 
-            function loadDoctors() {
-                var specialtyId = $specialtySelect.val();
+            var minDate = new Date();
+            var maxDate = new Date();
+            maxDate.setDate(maxDate.getDate() + 7);
+
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            $dateInput.attr('min', formatDate(minDate));
+            $dateInput.attr('max', formatDate(maxDate));
+
+            function resetDoctors() {
                 $doctorSelect.html('<option value="">-- Chọn bác sĩ --</option>');
-                $slotSelect.html('<option value="">-- Chọn khung giờ --</option>');
-                
-                if (specialtyId) {
-                    $.get('@Url.Action("GetDoctorsBySpecialty", "Appointments")', { specialtyId: specialtyId }, function(data) {
-                        $.each(data, function(index, doctor) {
-                            $doctorSelect.append($('<option/>', {
-                                value: doctor.value,
-                                text: doctor.text
-                            }));
-                        });
-                    });
+            }
+
+            function resetSlots(message) {
+                $slotSelect.html('<option value="">' + (message || '-- Chọn khung giờ --') + '</option>');
+            }
+
+            function loadDoctors(callback) {
+                var specialtyId = $specialtySelect.val();
+
+                resetDoctors();
+                resetSlots();
+
+                if (!specialtyId) {
+                    return;
                 }
+
+                $.get('@Url.Action("GetDoctorsBySpecialty", "Appointments")',
+                    { specialtyId: specialtyId },
+                    function (data) {
+                        resetDoctors();
+
+                        if (data && data.length > 0) {
+                            $.each(data, function (index, doctor) {
+                                $doctorSelect.append($('<option/>', {
+                                    value: doctor.value,
+                                    text: doctor.text
+                                }));
+                            });
+                        }
+
+                        if (callback) callback();
+                    }
+                ).fail(function () {
+                    resetDoctors();
+                    resetSlots('-- Lỗi khi tải bác sĩ --');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Không thể tải danh sách bác sĩ.');
+                    }
+                });
             }
 
             function loadSlots() {
                 var doctorId = $doctorSelect.val();
                 var date = $dateInput.val();
-                $slotSelect.html('<option value="">-- Đang tải... --</option>');
 
-                if (doctorId && date) {
-                    $.get('@Url.Action("GetSlots", "Appointments")', { doctorId: doctorId, appointmentDate: date }, function(data) {
-                        $slotSelect.html('<option value="">-- Chọn khung giờ --</option>');
+                if (!doctorId || !date) {
+                    resetSlots();
+                    return;
+                }
+
+                resetSlots('-- Đang tải... --');
+
+                $.get('@Url.Action("GetSlots", "Appointments")',
+                    {
+                        doctorId: doctorId,
+                        appointmentDate: date
+                    },
+                    function (data) {
+                        resetSlots();
+
                         if (data && data.length > 0) {
-                            $.each(data, function(index, slot) {
+                            $.each(data, function (index, slot) {
                                 $slotSelect.append($('<option/>', {
                                     value: slot.value,
                                     text: slot.text
                                 }));
                             });
                         } else {
-                            $slotSelect.html('<option value="">-- Không có khung giờ trống hoặc chưa có lịch tập --</option>');
+                            resetSlots('-- Không có khung giờ trống hoặc chưa có lịch làm việc --');
                         }
-                    }).fail(function() {
-                        $slotSelect.html('<option value="">-- Lỗi khi tải khung giờ --</option>');
-                    });
-                } else {
-                    $slotSelect.html('<option value="">-- Chọn khung giờ --</option>');
-                }
+                    }
+                ).fail(function () {
+                    resetSlots('-- Lỗi khi tải khung giờ --');
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('Không thể tải khung giờ khám.');
+                    }
+                });
             }
 
-            $specialtySelect.change(loadDoctors);
-            $doctorSelect.change(loadSlots);
-            $dateInput.change(loadSlots);
+            $specialtySelect.on('change', function () {
+                loadDoctors();
+            });
+
+            $doctorSelect.on('change', function () {
+                loadSlots();
+            });
+
+            $dateInput.on('change', function () {
+                loadSlots();
+            });
+
+            if ($specialtySelect.val()) {
+                loadDoctors(function () {
+                    var currentDoctorId = '@Model.DoctorId';
+                    if (currentDoctorId) {
+                        $doctorSelect.val(currentDoctorId);
+                    }
+
+                    if ($doctorSelect.val() && $dateInput.val()) {
+                        loadSlots();
+
+                        setTimeout(function () {
+                            var currentSlotId = '@Model.DoctorScheduleSlotId';
+                            if (currentSlotId) {
+                                $slotSelect.val(currentSlotId);
+                            }
+                        }, 300);
+                    }
+                });
+            }
         });
     </script>
+
+    @if (ViewBag.ToastErrors != null)
+    {
+        <script>
+            $(function () {
+                var errors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ToastErrors));
+                if (errors && errors.length && typeof toastr !== 'undefined') {
+                    errors.forEach(function (err) {
+                        toastr.error(err);
+                    });
+                }
+            });
+        </script>
+    }
 }

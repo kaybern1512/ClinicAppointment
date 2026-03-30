@@ -33,6 +33,8 @@
                             _ => "badge bg-secondary"
                         };
 
+                        var today = DateOnly.FromDateTime(DateTime.Today);
+
                         <tr>
                             <td>#@item.AppointmentId</td>
                             <td>@item.PatientName</td>
@@ -40,16 +42,49 @@
                             <td>@item.SpecialtyName</td>
                             <td>@item.AppointmentDate.ToString("dd/MM/yyyy")</td>
                             <td>@item.AppointmentTime.ToString(@"hh\:mm")</td>
-                            <td><span class="@badgeClass">@item.StatusName</span></td>
                             <td>
-                                <a asp-action="Details" asp-route-id="@item.AppointmentId" class="btn btn-outline-primary btn-sm">
-                                    Xem chi tiết
+                                <span class="@badgeClass">@item.StatusName</span>
+                            </td>
+
+                            <td>
+                                <!-- XEM CHI TIẾT -->
+                                <a asp-action="Details"
+                                   asp-route-id="@item.AppointmentId"
+                                   class="btn btn-outline-primary btn-sm me-1">
+                                    Xem
                                 </a>
+
+                                <!-- NÚT HỦY -->
+                                @if (item.StatusName != "Cancelled"
+                               && item.StatusName != "Completed"
+                               && item.AppointmentDate >= today)
+                                {
+                                    <form asp-action="Cancel"
+                                          asp-route-appointmentId="@item.AppointmentId"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn hủy lịch này không?');">
+
+                                        @Html.AntiForgeryToken()
+
+                                        <button type="submit"
+                                                class="btn btn-outline-danger btn-sm">
+                                            Hủy
+                                        </button>
+                                    </form>
+                                }
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-4 text-muted">
+                    Bạn chưa có lịch hẹn nào.
+                </div>
+            }
         </div>
     </div>
 </div>

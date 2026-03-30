@@ -1,7 +1,7 @@
-﻿CREATE DATABASE ClinicBookingDB;
+﻿CREATE DATABASE ClinicBooking;
 GO
 
-USE ClinicBookingDB;
+USE ClinicBooking;
 GO
 
 /* =========================================================
@@ -453,3 +453,89 @@ VALUES
 (N'Lê Anh Tuấn', 'tuan@gmail.com', N'Tôi cần tư vấn chuyên khoa tim mạch.', GETDATE(), 1),
 (N'Phạm Thảo', 'thao@gmail.com', N'Tôi muốn đổi lịch hẹn đã đặt.', GETDATE(), 0);
 GO
+Thêm ở đây.
+ALTER TABLE Appointments
+DROP CONSTRAINT UQ_Appointments_Doctor_Date_Time;
+
+/* =========================================================
+   MedicalRecords
+========================================================= */
+IF OBJECT_ID('MedicalRecords', 'U') IS NULL
+BEGIN
+    CREATE TABLE MedicalRecords
+    (
+        RecordId INT IDENTITY(1,1) PRIMARY KEY,
+        AppointmentId INT NOT NULL,
+        Diagnosis NVARCHAR(2000) NULL,
+        Prescription NVARCHAR(2000) NULL,
+        DoctorNotes NVARCHAR(2000) NULL,
+        CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT FK_MedicalRecords_Appointments
+            FOREIGN KEY (AppointmentId)
+            REFERENCES Appointments(AppointmentId)
+            ON DELETE CASCADE
+    );
+END
+GO
+
+/* =========================================================
+   DoctorReviews
+========================================================= */
+IF OBJECT_ID('DoctorReviews', 'U') IS NULL
+BEGIN
+    CREATE TABLE DoctorReviews
+    (
+        ReviewId INT IDENTITY(1,1) PRIMARY KEY,
+        DoctorId INT NOT NULL,
+        PatientId INT NOT NULL,
+        AppointmentId INT NOT NULL,
+        Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5),
+        Comment NVARCHAR(1000) NULL,
+        CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT FK_DoctorReviews_Doctors
+            FOREIGN KEY (DoctorId)
+            REFERENCES Doctors(DoctorId)
+            ON DELETE CASCADE,
+
+        CONSTRAINT FK_DoctorReviews_Users
+            FOREIGN KEY (PatientId)
+            REFERENCES Users(UserId)
+            ON DELETE NO ACTION,
+
+        CONSTRAINT FK_DoctorReviews_Appointments
+            FOREIGN KEY (AppointmentId)
+            REFERENCES Appointments(AppointmentId)
+            ON DELETE NO ACTION
+    );
+END
+GO
+
+/* =========================================================
+   FamilyMembers
+========================================================= */
+IF OBJECT_ID('FamilyMembers', 'U') IS NULL
+BEGIN
+    CREATE TABLE FamilyMembers
+    (
+        MemberId INT IDENTITY(1,1) PRIMARY KEY,
+        PatientId INT NOT NULL,
+        FullName NVARCHAR(150) NOT NULL,
+        DateOfBirth DATE NULL,
+        Gender NVARCHAR(20) NULL,
+        Relationship NVARCHAR(50) NOT NULL,
+
+        CONSTRAINT FK_FamilyMembers_Users
+            FOREIGN KEY (PatientId)
+            REFERENCES Users(UserId)
+            ON DELETE CASCADE
+    );
+END
+GO
+SELECT * FROM MedicalRecords;
+SELECT * FROM DoctorReviews;
+SELECT * FROM FamilyMembers;
+SELECT COLUMN_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'MedicalRecords';

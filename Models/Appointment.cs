@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicBookingMVC.Models;
 
-[Index("DoctorId", "AppointmentDate", "AppointmentTime", Name = "UQ_Appointments_Doctor_Date_Time", IsUnique = true)]
 [Index("BookingCode", Name = "UQ__Appointm__C6E56BD5E379392F", IsUnique = true)]
 public partial class Appointment
 {

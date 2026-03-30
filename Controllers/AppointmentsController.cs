@@ -53,23 +53,59 @@ namespace ClinicBookingMVC.Controllers
 
             if (model.DoctorId > 0 && model.AppointmentDate != default)
             {
-                model.ScheduleSlots = await _context.DoctorScheduleSlots
-                    .AsNoTracking()
-                    .Include(s => s.Schedule)
-                    .Include(s => s.TimeSlot)
-                    .Where(s =>
-                        s.IsAvailable &&
-                        s.CurrentAppointments < s.MaxAppointments &&
-                        s.Schedule.IsAvailable &&
-                        s.Schedule.DoctorId == model.DoctorId &&
-                        s.Schedule.WorkDate == model.AppointmentDate)
-                    .OrderBy(s => s.TimeSlot.StartTime)
-                    .Select(s => new SelectListItem
-                    {
-                        Value = s.DoctorScheduleSlotId.ToString(),
-                        Text = s.TimeSlot.SlotLabel ?? $"{s.TimeSlot.StartTime:HH\\:mm} - {s.TimeSlot.EndTime:HH\\:mm}"
-                    })
-                    .ToListAsync();
+                var now = DateTime.Now;
+                var today = DateOnly.FromDateTime(now);
+                var maxBookingDate = today.AddDays(7);
+
+                if (model.AppointmentDate >= today && model.AppointmentDate <= maxBookingDate)
+                {
+                    var rawSlots = await _context.DoctorScheduleSlots
+                        .AsNoTracking()
+                        .Where(s =>
+                            s.IsAvailable &&
+                            s.CurrentAppointments < s.MaxAppointments &&
+                            s.Schedule.IsAvailable &&
+                            s.Schedule.DoctorId == model.DoctorId &&
+                            s.Schedule.WorkDate == model.AppointmentDate &&
+                            s.TimeSlot.IsActive)
+                        .OrderBy(s => s.TimeSlot.StartTime)
+                        .Select(s => new
+                        {
+                            s.DoctorScheduleSlotId,
+                            s.Schedule.WorkDate,
+                            s.TimeSlot.StartTime,
+                            s.TimeSlot.EndTime,
+                            s.TimeSlot.SlotLabel
+                        })
+                        .ToListAsync();
+
+                    model.ScheduleSlots = rawSlots
+                        .Where(s =>
+                        {
+                            var appointmentDateTime = new DateTime(
+                                s.WorkDate.Year,
+                                s.WorkDate.Month,
+                                s.WorkDate.Day,
+                                s.StartTime.Hour,
+                                s.StartTime.Minute,
+                                0
+                            );
+
+                            return appointmentDateTime > now;
+                        })
+                        .Select(s => new SelectListItem
+                        {
+                            Value = s.DoctorScheduleSlotId.ToString(),
+                            Text = !string.IsNullOrEmpty(s.SlotLabel)
+                                ? s.SlotLabel
+                                : s.StartTime.ToString(@"HH\:mm") + " - " + s.EndTime.ToString(@"HH\:mm")
+                        })
+                        .ToList();
+                }
+                else
+                {
+                    model.ScheduleSlots = new List<SelectListItem>();
+                }
             }
             else
             {
@@ -111,18 +147,31 @@ namespace ClinicBookingMVC.Controllers
             return $"BK{DateTime.Now:yyyyMMddHHmmssfff}";
         }
 
+        private void SetToastErrorsFromModelState()
+        {
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .Where(e => !string.IsNullOrWhiteSpace(e))
+                .Distinct()
+                .ToList();
+
+            ViewBag.ToastErrors = errors;
+        }
+
         [HttpGet]
         public async Task<IActionResult> Create()
         {
             int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
             {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để đặt lịch.";
                 return RedirectToAction("Login", "Account");
             }
 
             var model = new AppointmentCreateViewModel
             {
-                AppointmentDate = DateOnly.FromDateTime(DateTime.Today.AddDays(1))
+                AppointmentDate = DateOnly.FromDateTime(DateTime.Today)
             };
 
             await PrefillPatientInfoAsync(model, userId.Value);
@@ -137,6 +186,7 @@ namespace ClinicBookingMVC.Controllers
             int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
             {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để đặt lịch.";
                 return RedirectToAction("Login", "Account");
             }
 
@@ -146,11 +196,18 @@ namespace ClinicBookingMVC.Controllers
             model.Gender = string.IsNullOrWhiteSpace(model.Gender) ? null : model.Gender.Trim();
             model.Symptoms = string.IsNullOrWhiteSpace(model.Symptoms) ? null : model.Symptoms.Trim();
 
-            var today = DateOnly.FromDateTime(DateTime.Today);
+            var now = DateTime.Now;
+            var today = DateOnly.FromDateTime(now);
+            var maxBookingDate = today.AddDays(7);
 
             if (model.AppointmentDate < today)
             {
-                ModelState.AddModelError("AppointmentDate", "Ngày khám phải từ hôm nay trở đi.");
+                ModelState.AddModelError("AppointmentDate", "Không thể đặt lịch trong quá khứ.");
+            }
+
+            if (model.AppointmentDate > maxBookingDate)
+            {
+                ModelState.AddModelError("AppointmentDate", "Chỉ được đặt lịch tối đa trong vòng 1 tuần tới.");
             }
 
             if (model.DateOfBirth.HasValue)
@@ -172,7 +229,8 @@ namespace ClinicBookingMVC.Controllers
                 .Include(s => s.TimeSlot)
                 .FirstOrDefaultAsync(s =>
                     s.DoctorScheduleSlotId == model.DoctorScheduleSlotId &&
-                    s.IsAvailable);
+                    s.IsAvailable &&
+                    s.TimeSlot.IsActive);
 
             if (slot == null)
             {
@@ -205,20 +263,62 @@ namespace ClinicBookingMVC.Controllers
                     ModelState.AddModelError("AppointmentDate", "Ngày khám không khớp với khung giờ đã chọn.");
                 }
 
-                bool duplicateAppointment = await _context.Appointments.AnyAsync(a =>
+                if (slot.Schedule.WorkDate > maxBookingDate)
+                {
+                    ModelState.AddModelError("AppointmentDate", "Chỉ được đặt lịch tối đa trong vòng 1 tuần tới.");
+                }
+
+                var appointmentDateTime = new DateTime(
+                    slot.Schedule.WorkDate.Year,
+                    slot.Schedule.WorkDate.Month,
+                    slot.Schedule.WorkDate.Day,
+                    slot.TimeSlot.StartTime.Hour,
+                    slot.TimeSlot.StartTime.Minute,
+                    0
+                );
+
+                if (appointmentDateTime <= now)
+                {
+                    ModelState.AddModelError("DoctorScheduleSlotId", "Không thể đặt lịch ở khung giờ đã qua.");
+                }
+
+                var appointmentsInSameDay = await _context.Appointments.CountAsync(a =>
+                    a.UserPatientId == userId.Value &&
+                    a.AppointmentDate == slot.Schedule.WorkDate &&
+                    a.StatusId != CancelledStatusId);
+
+                if (appointmentsInSameDay >= 2)
+                {
+                    ModelState.AddModelError(string.Empty, "Bạn chỉ được đặt tối đa 2 lịch trong 1 ngày.");
+                }
+
+                bool duplicateTime = await _context.Appointments.AnyAsync(a =>
                     a.UserPatientId == userId.Value &&
                     a.AppointmentDate == slot.Schedule.WorkDate &&
                     a.TimeSlotId == slot.TimeSlotId &&
                     a.StatusId != CancelledStatusId);
 
-                if (duplicateAppointment)
+                if (duplicateTime)
                 {
-                    ModelState.AddModelError(string.Empty, "Bạn đã có một lịch hẹn khác trong đúng khung giờ này.");
+                    ModelState.AddModelError(string.Empty, "Bạn đã có lịch hẹn khác trong cùng khung giờ này.");
+                }
+
+                bool duplicateDoctorAndTime = await _context.Appointments.AnyAsync(a =>
+                    a.UserPatientId == userId.Value &&
+                    a.DoctorId == slot.Schedule.DoctorId &&
+                    a.AppointmentDate == slot.Schedule.WorkDate &&
+                    a.TimeSlotId == slot.TimeSlotId &&
+                    a.StatusId != CancelledStatusId);
+
+                if (duplicateDoctorAndTime)
+                {
+                    ModelState.AddModelError(string.Empty, "Bạn đã đặt lịch với bác sĩ này trong khung giờ này.");
                 }
             }
 
             if (!ModelState.IsValid)
             {
+                SetToastErrorsFromModelState();
                 await LoadDropdowns(model);
                 return View(model);
             }
@@ -279,7 +379,12 @@ namespace ClinicBookingMVC.Controllers
             catch
             {
                 await transaction.RollbackAsync();
-                ModelState.AddModelError(string.Empty, "Đặt lịch thất bại. Vui lòng thử lại.");
+
+                ViewBag.ToastErrors = new List<string>
+                {
+                    "Đặt lịch thất bại. Vui lòng thử lại."
+                };
+
                 await LoadDropdowns(model);
                 return View(model);
             }
@@ -303,25 +408,69 @@ namespace ClinicBookingMVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSlots(int doctorId, DateOnly appointmentDate)
+        public async Task<IActionResult> GetSlots(int doctorId, string appointmentDate)
         {
-            var slots = await _context.DoctorScheduleSlots
+            if (doctorId <= 0 || string.IsNullOrWhiteSpace(appointmentDate))
+            {
+                return Json(new List<object>());
+            }
+
+            if (!DateOnly.TryParse(appointmentDate, out var workDate))
+            {
+                return Json(new List<object>());
+            }
+
+            var now = DateTime.Now;
+            var today = DateOnly.FromDateTime(now);
+            var maxBookingDate = today.AddDays(7);
+
+            if (workDate < today || workDate > maxBookingDate)
+            {
+                return Json(new List<object>());
+            }
+
+            var rawSlots = await _context.DoctorScheduleSlots
                 .AsNoTracking()
-                .Include(s => s.Schedule)
-                .Include(s => s.TimeSlot)
                 .Where(s =>
                     s.IsAvailable &&
                     s.CurrentAppointments < s.MaxAppointments &&
                     s.Schedule.IsAvailable &&
                     s.Schedule.DoctorId == doctorId &&
-                    s.Schedule.WorkDate == appointmentDate)
+                    s.Schedule.WorkDate == workDate &&
+                    s.TimeSlot.IsActive)
                 .OrderBy(s => s.TimeSlot.StartTime)
                 .Select(s => new
                 {
-                    value = s.DoctorScheduleSlotId,
-                    text = s.TimeSlot.SlotLabel ?? $"{s.TimeSlot.StartTime:HH\\:mm} - {s.TimeSlot.EndTime:HH\\:mm}"
+                    s.DoctorScheduleSlotId,
+                    s.Schedule.WorkDate,
+                    s.TimeSlot.StartTime,
+                    s.TimeSlot.EndTime,
+                    s.TimeSlot.SlotLabel
                 })
                 .ToListAsync();
+
+            var slots = rawSlots
+                .Where(s =>
+                {
+                    var appointmentDateTime = new DateTime(
+                        s.WorkDate.Year,
+                        s.WorkDate.Month,
+                        s.WorkDate.Day,
+                        s.StartTime.Hour,
+                        s.StartTime.Minute,
+                        0
+                    );
+
+                    return appointmentDateTime > now;
+                })
+                .Select(s => new
+                {
+                    value = s.DoctorScheduleSlotId,
+                    text = !string.IsNullOrEmpty(s.SlotLabel)
+                        ? s.SlotLabel
+                        : s.StartTime.ToString(@"HH\:mm") + " - " + s.EndTime.ToString(@"HH\:mm")
+                })
+                .ToList();
 
             return Json(slots);
         }
@@ -332,6 +481,7 @@ namespace ClinicBookingMVC.Controllers
             int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
             {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để xem lịch hẹn.";
                 return RedirectToAction("Login", "Account");
             }
 
@@ -365,6 +515,7 @@ namespace ClinicBookingMVC.Controllers
             int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
             {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để xem chi tiết lịch hẹn.";
                 return RedirectToAction("Login", "Account");
             }
 
@@ -406,6 +557,7 @@ namespace ClinicBookingMVC.Controllers
             int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
             {
+                TempData["ErrorMessage"] = "Vui lòng đăng nhập để hủy lịch.";
                 return RedirectToAction("Login", "Account");
             }
 
@@ -431,9 +583,31 @@ namespace ClinicBookingMVC.Controllers
                 return RedirectToAction(nameof(MyAppointments));
             }
 
-            if (appointment.AppointmentDate <= DateOnly.FromDateTime(DateTime.Today))
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            if (appointment.AppointmentDate < today)
             {
-                TempData["ErrorMessage"] = "Bạn chỉ có thể hủy lịch trước ngày khám.";
+                TempData["ErrorMessage"] = "Không thể hủy lịch hẹn trong quá khứ.";
+                return RedirectToAction(nameof(MyAppointments));
+            }
+
+            var now = DateTime.Now;
+            var startOfWeek = now.Date.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
+            if (now.DayOfWeek == DayOfWeek.Sunday)
+            {
+                startOfWeek = now.Date.AddDays(-6);
+            }
+
+            var endOfWeek = startOfWeek.AddDays(7);
+
+            var cancelCountThisWeek = await _context.AppointmentStatusHistories.CountAsync(h =>
+                h.ChangedByUserId == userId.Value &&
+                h.NewStatusId == CancelledStatusId &&
+                h.ChangedAt >= startOfWeek &&
+                h.ChangedAt < endOfWeek);
+
+            if (cancelCountThisWeek >= 2)
+            {
+                TempData["ErrorMessage"] = "Bạn chỉ được hủy tối đa 2 lịch trong 1 tuần.";
                 return RedirectToAction(nameof(MyAppointments));
             }
 

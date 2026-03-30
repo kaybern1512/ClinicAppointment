@@ -93,6 +93,36 @@ namespace ClinicBookingMVC.Controllers
             var record = await _context.MedicalRecords.FirstOrDefaultAsync(m => m.AppointmentId == id);
             ViewBag.ExistingRecord = record;
 
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var currentTime = TimeOnly.FromDateTime(DateTime.Now);
+
+            bool canWriteMedicalRecord = true;
+            string? medicalRecordBlockedReason = null;
+
+            if (appointment.Status?.StatusName == "Cancelled")
+            {
+                canWriteMedicalRecord = false;
+                medicalRecordBlockedReason = "Lịch hẹn đã bị hủy nên không thể tạo hồ sơ bệnh án.";
+            }
+            else if (record != null)
+            {
+                canWriteMedicalRecord = false;
+                medicalRecordBlockedReason = "Lịch hẹn này đã có hồ sơ bệnh án.";
+            }
+            else if (appointment.AppointmentDate > today)
+            {
+                canWriteMedicalRecord = false;
+                medicalRecordBlockedReason = "Chưa tới ngày khám.";
+            }
+            else if (appointment.AppointmentDate == today && appointment.AppointmentTime > currentTime)
+            {
+                canWriteMedicalRecord = false;
+                medicalRecordBlockedReason = "Chưa tới giờ khám.";
+            }
+
+            ViewBag.CanWriteMedicalRecord = canWriteMedicalRecord;
+            ViewBag.MedicalRecordBlockedReason = medicalRecordBlockedReason;
+
             return View(appointment);
         }
 
@@ -100,42 +130,85 @@ namespace ClinicBookingMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveMedicalRecord(int appointmentId, string diagnosis, string prescription, string doctorNotes)
         {
-            if (!IsDoctor()) return RedirectToAction("Login", "Account");
+            if (!IsDoctor())
+                return RedirectToAction("Login", "Account");
 
             var userFullName = GetUserFullName();
             var doctor = await _context.Doctors.FirstOrDefaultAsync(d => d.FullName == userFullName);
-            if (doctor == null) return RedirectToAction("Index");
+            if (doctor == null)
+                return RedirectToAction("Index");
 
             var appointment = await _context.Appointments
                 .Include(a => a.Status)
                 .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId && a.DoctorId == doctor.DoctorId);
 
-            if (appointment == null) return NotFound();
+            if (appointment == null)
+                return NotFound();
 
-            var existingRecord = await _context.MedicalRecords.FirstOrDefaultAsync(m => m.AppointmentId == appointmentId);
-            if (existingRecord == null)
+            diagnosis = diagnosis?.Trim() ?? string.Empty;
+            prescription = prescription?.Trim() ?? string.Empty;
+            doctorNotes = doctorNotes?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(diagnosis))
             {
-                var newRecord = new MedicalRecord
-                {
-                    AppointmentId = appointmentId,
-                    Diagnosis = diagnosis,
-                    Prescription = prescription,
-                    DoctorNotes = doctorNotes,
-                    CreatedAt = DateTime.Now
-                };
-                _context.MedicalRecords.Add(newRecord);
-
-                var completedStatus = await _context.AppointmentStatuses.FirstOrDefaultAsync(s => s.StatusName == "Completed");
-                if (completedStatus != null)
-                {
-                    appointment.StatusId = completedStatus.StatusId;
-                    _context.Appointments.Update(appointment);
-                }
-
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Đã lưu bệnh án và hoàn thành lịch hẹn thành công.";
+                TempData["ErrorMessage"] = "Vui lòng nhập chẩn đoán trước khi lưu bệnh án.";
+                return RedirectToAction("AppointmentDetails", new { id = appointmentId });
             }
 
+            if (appointment.Status?.StatusName == "Cancelled")
+            {
+                TempData["ErrorMessage"] = "Không thể tạo bệnh án cho lịch hẹn đã bị hủy.";
+                return RedirectToAction("AppointmentDetails", new { id = appointmentId });
+            }
+
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var currentTime = TimeOnly.FromDateTime(DateTime.Now);
+
+            if (appointment.AppointmentDate > today)
+            {
+                TempData["ErrorMessage"] = "Chưa tới ngày khám, không thể tạo hồ sơ bệnh án.";
+                return RedirectToAction("AppointmentDetails", new { id = appointmentId });
+            }
+
+            if (appointment.AppointmentDate == today && appointment.AppointmentTime > currentTime)
+            {
+                TempData["ErrorMessage"] = "Chưa tới giờ khám, không thể tạo hồ sơ bệnh án.";
+                return RedirectToAction("AppointmentDetails", new { id = appointmentId });
+            }
+
+            var existingRecord = await _context.MedicalRecords
+                .FirstOrDefaultAsync(m => m.AppointmentId == appointmentId);
+
+            if (existingRecord != null)
+            {
+                TempData["ErrorMessage"] = "Lịch hẹn này đã có hồ sơ bệnh án rồi.";
+                return RedirectToAction("AppointmentDetails", new { id = appointmentId });
+            }
+
+            var newRecord = new MedicalRecord
+            {
+                AppointmentId = appointmentId,
+                Diagnosis = diagnosis,
+                Prescription = string.IsNullOrWhiteSpace(prescription) ? null : prescription,
+                DoctorNotes = string.IsNullOrWhiteSpace(doctorNotes) ? null : doctorNotes,
+                CreatedAt = DateTime.Now
+            };
+
+            _context.MedicalRecords.Add(newRecord);
+
+            var completedStatus = await _context.AppointmentStatuses
+                .FirstOrDefaultAsync(s => s.StatusName == "Completed");
+
+            if (completedStatus != null && appointment.StatusId != completedStatus.StatusId)
+            {
+                appointment.StatusId = completedStatus.StatusId;
+                appointment.UpdatedAt = DateTime.Now;
+                _context.Appointments.Update(appointment);
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Đã lưu bệnh án và hoàn thành lịch hẹn thành công.";
             return RedirectToAction("AppointmentDetails", new { id = appointmentId });
         }
 
