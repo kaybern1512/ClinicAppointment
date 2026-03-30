@@ -36,7 +36,36 @@
             </div>
         `;
         document.body.appendChild(chatbox);
-        window.chatboxApp = { toggleChatbox };
+        window.chatboxApp = { 
+            toggleChatbox: toggleChatbox,
+            bookDoctor: function(specialtyId, doctorId, doctorName) {
+                const params = new URLSearchParams({
+                    specialtyId: specialtyId,
+                    doctorId: doctorId
+                });
+                window.open(`/Appointments/Create?${params}`, '_blank');
+                addMessage(`Đã mở form đặt lịch với ${doctorName}. Bạn có thể đóng tab chatbox.`, 'bot');
+            },
+            showDoctorList: function(specialtyId, doctorsStr) {
+                let doctors;
+                try {
+                    doctors = JSON.parse(doctorsStr);
+                } catch(e) {
+                    doctors = [];
+                }
+                let doctorList = doctors.map(d => 
+                    `<li style="margin: 5px 0;"><a href="/Appointments/Create?specialtyId=${specialtyId}&doctorId=${d.doctorId}" target="_blank" style="color: #007bff; text-decoration: none;">
+                        ${d.doctorName} • ${d.experienceYears} năm kinh nghiệm • ${d.consultationFee.toLocaleString('vi-VN')}đ
+                    </a></li>`
+                ).join('');
+                addMessage(`
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px;">
+                        <h4 style="margin: 0 0 10px 0; color: #495057;">👥 Các bác sĩ cùng chuyên khoa:</h4>
+                        <ul style="margin: 0; padding-left: 20px;">${doctorList}</ul>
+                    </div>
+                `, 'bot');
+            }
+        };
     }
 
     function bindEvents() {
@@ -105,7 +134,12 @@
                 if (data.isError) {
                     addMessage(data.errorMessage || 'Có lỗi xảy ra. Vui lòng thử lại.', 'bot');
                 } else {
-                    addMessage(data.response, 'bot');
+                    // Check for structured recommendation
+                    if (data.recommendedDoctorId && data.recommendedSpecialtyId) {
+                        addRecommendationMessage(data);
+                    } else {
+                        addMessage(data.response, 'bot');
+                    }
                 }
             } else {
                 addMessage('Không thể kết nối tới AI. Vui lòng kiểm tra kết nối.', 'bot');

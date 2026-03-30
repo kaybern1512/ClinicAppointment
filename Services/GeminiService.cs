@@ -1,4 +1,5 @@
 using ClinicBookingMVC.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Text;
 using System.Text.Json;
@@ -17,9 +18,12 @@ namespace ClinicBookingMVC.Services
         private readonly string _apiKey;
         private readonly string _baseUrl = "https://generativelanguage.googleapis.com/v1beta";
 
-        public GeminiService(HttpClient httpClient, IConfiguration configuration)
+        private readonly ClinicBookingContext _context;
+        
+        public GeminiService(HttpClient httpClient, IConfiguration configuration, ClinicBookingContext context)
         {
             _httpClient = httpClient;
+            _context = context;
             _apiKey = configuration["GeminiApiKey"] ?? throw new InvalidOperationException("GeminiApiKey not configured.");
         }
 
@@ -29,15 +33,62 @@ namespace ClinicBookingMVC.Services
 
             try
             {
-                var prompt = $@"You are a helpful medical assistant for ClinicAppointment website. Analyze the user's symptoms and provide:
-1. Main symptoms identified
-2. Recommended medical specialty  
-3. Type of doctor to consult
-4. Next steps (suggest booking appointment)
+                // Query real DB data for recommendations
+                var specialties = await _context.Specialties
+                    .Where(s => s.IsActive)
+                    .Select(s => new { s.SpecialtyId, s.SpecialtyName, s.Description })
+                    .ToListAsync();
 
-User symptoms: {userMessage}
+                var doctors = await _context.Doctors
+                    .Include(d => d.Specialty)
+                    .Where(d => d.IsActive)
+                    .Select(d => new {
+                        d.DoctorId,
+                        d.FullName,
+                        SpecialtyName = d.Specialty.SpecialtyName,
+                        SpecialtyId = d.SpecialtyId,
+                        d.ExperienceYears,
+                        d.ConsultationFee,
+                        d.Description
+                    })
+                    .ToListAsync();
 
-Important: Respond in Vietnamese. Be concise, professional. Do not give medical diagnosis.";
+                // Group doctors by specialty for prompt
+                var doctorsBySpecialty = doctors
+                    .GroupBy(d => d.SpecialtyName)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var specialtyList = string.Join("\n", specialties.Select(s => $"• {s.SpecialtyName} (ID: {s.SpecialtyId})"));
+                var doctorList = string.Join("\n", doctorsBySpecialty.Select(kvp => 
+                    $"**{kvp.Key}:**\n" + string.Join("\n", kvp.Value.Select(d => $"  - ID:{d.DoctorId} {d.FullName} ({d.ExperienceYears} năm, {d.ConsultationFee:##,###}đ)"))
+                ));
+
+                var prompt = $@"Bạn là trợ lý y tế thông minh cho ClinicAppointment. Dựa trên triệu chứng, KHÔU CHỌN BÁC SĨ THỰC TẾ từ danh sách sau:
+
+**Chuyên khoa có sẵn:**
+{specialtyList}
+
+**Bác sĩ theo chuyên khoa:**
+{doctorList}
+
+Triệu chứng bệnh nhân (có thể nhiều): {userMessage}
+
+✅ NHỮNG GÌ BẠN PHẢI LÀM:
+1. Phân tích TẤT CẢ triệu chứng (dù nhiều)
+2. Chọn CHÍNH XÁC 1 chuyên khoa phù hợp NHẤT 
+3. Chọn 1 BÁC SĨ CỤ THỂ từ danh sách (ưu tiên kinh nghiệm cao)
+4. TRẢ LỜI ĐÚNG ĐỊNH DẠNG JSON duy nhất:
+
+{{
+  ""specialtyId"": [ID số],
+  ""specialtyName"": ""Tên chính xác"",
+  ""doctorId"": [ID số], 
+  ""doctorName"": ""Tên chính xác"",
+  ""reason"": ""Giải thích ngắn gọn (tiếng Việt)"",
+  ""response"": ""Tin nhắn thân thiện cho bệnh nhân (tiếng Việt)""
+}}
+
+⚠️ CHỈ trả JSON, không text khác. Không chẩn đoán y tế!";
 
                 var requestBody = new
                 {
@@ -96,7 +147,43 @@ Important: Respond in Vietnamese. Be concise, professional. Do not give medical 
 
                     if (jsonDoc != null && jsonDoc["candidates"]?.AsArray()?[0]?["content"]?["parts"]?.AsArray()?[0]?["text"] is JsonValue textNode)
                     {
-                        response.Response = textNode.GetValue<string>()?.Trim() ?? "Không nhận được phản hồi từ AI.";
+                        var aiText = textNode.GetValue<string>()?.Trim();
+                        
+                        // Try parse JSON recommendation from AI response
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(aiText);
+                            var root = doc.RootElement;
+                            
+                            response.RecommendedSpecialtyId = root.TryGetProperty("specialtyId", out var spId) ? spId.GetInt32() : null;
+                            response.RecommendedSpecialtyName = root.TryGetProperty("specialtyName", out var spName) ? spName.GetString() ?? "" : "";
+                            response.RecommendedDoctorId = root.TryGetProperty("doctorId", out var docId) ? docId.GetInt32() : null;
+                            response.RecommendedDoctorName = root.TryGetProperty("doctorName", out var docName) ? docName.GetString() ?? "" : "";
+                            response.RecommendationReason = root.TryGetProperty("reason", out var reason) ? reason.GetString() ?? "" : "";
+                            response.Response = root.TryGetProperty("response", out var resp) ? resp.GetString() ?? aiText : aiText;
+                            
+                            // Populate available doctors for recommended specialty
+                            if (response.RecommendedSpecialtyId.HasValue)
+                            {
+                                var recSpecialtyDoctors = doctors
+                                    .Where(d => d.SpecialtyId == response.RecommendedSpecialtyId.Value)
+                                    .Select(d => new DoctorRecommendation
+                                    {
+                                        DoctorId = d.DoctorId,
+                                        DoctorName = d.FullName,
+                                        SpecialtyName = d.SpecialtyName,
+                                        ExperienceYears = d.ExperienceYears,
+                                        ConsultationFee = d.ConsultationFee
+                                    })
+                                    .ToList();
+                                response.AvailableDoctors = recSpecialtyDoctors;
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // Fallback to plain text if JSON invalid
+                            response.Response = aiText ?? "Không nhận được phản hồi từ AI.";
+                        }
                     }
                     else
                     {
