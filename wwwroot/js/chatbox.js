@@ -1,4 +1,4 @@
-// Chatbox JS - Production ready
+// Chatbox JS - Professional recommendation UI (no raw JSON)
 (function () {
     'use strict';
 
@@ -18,7 +18,7 @@
         const fab = document.createElement('button');
         fab.className = 'chatbox-fab';
         fab.innerHTML = '💬';
-        fab.title = 'Trợ giúp tư vấn bác sĩ';
+        fab. title = 'Trợ giúp tư vấn bác sĩ';
         fab.onclick = toggleChatbox;
         document.body.appendChild(fab);
 
@@ -45,25 +45,6 @@
                 });
                 window.open(`/Appointments/Create?${params}`, '_blank');
                 addMessage(`Đã mở form đặt lịch với ${doctorName}. Bạn có thể đóng tab chatbox.`, 'bot');
-            },
-            showDoctorList: function(specialtyId, doctorsStr) {
-                let doctors;
-                try {
-                    doctors = JSON.parse(doctorsStr);
-                } catch(e) {
-                    doctors = [];
-                }
-                let doctorList = doctors.map(d => 
-                    `<li style="margin: 5px 0;"><a href="/Appointments/Create?specialtyId=${specialtyId}&doctorId=${d.doctorId}" target="_blank" style="color: #007bff; text-decoration: none;">
-                        ${d.doctorName} • ${d.experienceYears} năm kinh nghiệm • ${d.consultationFee.toLocaleString('vi-VN')}đ
-                    </a></li>`
-                ).join('');
-                addMessage(`
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px;">
-                        <h4 style="margin: 0 0 10px 0; color: #495057;">👥 Các bác sĩ cùng chuyên khoa:</h4>
-                        <ul style="margin: 0; padding-left: 20px;">${doctorList}</ul>
-                    </div>
-                `, 'bot');
             }
         };
     }
@@ -102,28 +83,93 @@
         chatbox.classList.toggle('open');
     };
 
+    // NEW: Professional recommendation rendering (replaces raw JSON)
+    function addRecommendationMessage(data) {
+        const specialtyId = data.recommendedSpecialtyId;
+        const specialtyName = data.recommendedSpecialtyName || '';
+        const doctorId = data.recommendedDoctorId;
+        const doctorName = data.recommendedDoctorName || '';
+        const reason = data.recommendationReason || 'Phù hợp với triệu chứng của bạn';
+        const response = data.response || '';
+
+        // Doctor list HTML
+        let doctorListHtml = '';
+        if (data.availableDoctors && data.availableDoctors.length > 0) {
+            doctorListHtml = data.availableDoctors.map(doc => 
+                `<li>
+                    <a href="/Appointments/Create?specialtyId=${specialtyId}&doctorId=${doc.doctorId}" 
+                       target="_blank" class="book-btn" style="padding: 8px 16px; font-size: 14px;">
+                        ${doc.doctorName} • ${doc.experienceYears} năm • ${doc.consultationFee.toLocaleString('vi-VN')}đ
+                    </a>
+                </li>`
+            ).join('');
+        }
+
+        const html = `
+            <div class="message-bubble recommendation">
+                <h4 style="margin: 0 0 10px; color: white;">📋 Khuyến nghị: <strong>${doctorName}</strong> (${specialtyName})</h4>
+                ${response ? `<p style="margin: 0 0 15px; font-size: 15px;">${response.replace(/\n/g, '<br>')}</p>` : ''}
+                <div class="recommendation-reason">
+                    <strong>💭 Lý do:</strong> ${reason}
+                </div>
+                <div class="recommendation-actions">
+                    <a href="/Appointments/Create?specialtyId=${specialtyId}&doctorId=${doctorId}" 
+                       target="_blank" class="book-btn" style="margin-right: 10px;">
+                        📅 Đặt lịch ngay
+                    </a>
+                    ${doctorListHtml ? `
+                        <button onclick="showOtherDoctors(${specialtyId}, ${JSON.stringify(data.availableDoctors)})" 
+                                class="other-doctors-btn">
+                            👥 Bác sĩ khác
+                        </button>
+                    ` : ''}
+                </div>
+                ${doctorListHtml ? `
+                    <details style="margin-top: 15px;">
+                        <summary style="cursor: pointer; color: rgba(255,255,255,0.8); font-weight: 500;">👥 Xem tất cả bác sĩ ${specialtyName}</summary>
+                        <div class="doctor-list">
+                            <ul>${doctorListHtml}</ul>
+                        </div>
+                    </details>
+                ` : ''}
+            </div>
+        `;
+
+        addMessage(html, 'bot');
+    }
+
+    // Helper for other doctors (legacy + improved)
+    window.showOtherDoctors = function(specialtyId, doctors) {
+        let doctorList = doctors.map(d => 
+            `<li style="margin: 5px 0;"><a href="/Appointments/Create?specialtyId=${specialtyId}&doctorId=${d.doctorId}" target="_blank" style="color: #007bff; text-decoration: none;">
+                ${d.doctorName} • ${d.experienceYears} năm kinh nghiệm • ${d.consultationFee.toLocaleString('vi-VN')}đ
+            </a></li>`
+        ).join('');
+        addMessage(`
+            <div class="doctor-list" style="background: #f8f9fa; padding: 15px; border-radius: 10px;">
+                <h4 style="margin: 0 0 10px 0; color: #495057;">👥 Các bác sĩ cùng chuyên khoa:</h4>
+                <ul style="margin: 0; padding-left: 20px;">${doctorList}</ul>
+            </div>
+        `, 'bot');
+    };
+
     async function sendMessage() {
         const input = document.getElementById('chatInput');
-        const messages = document.getElementById('chatMessages');
         const message = input.value.trim();
 
         if (!message || isLoading) return;
 
-        // Add user message
         addMessage(message, 'user');
         input.value = '';
         toggleSendButton(false);
         isLoading = true;
 
-        // Show loading
         addLoadingMessage();
 
         try {
             const response = await fetch('/Chat/Ask', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: message })
             });
 
@@ -133,16 +179,13 @@
                 const data = await response.json();
                 if (data.isError) {
                     addMessage(data.errorMessage || 'Có lỗi xảy ra. Vui lòng thử lại.', 'bot');
+                } else if (data.recommendedDoctorId && data.recommendedSpecialtyId) {
+                    addRecommendationMessage(data);
                 } else {
-                    // Check for structured recommendation
-                    if (data.recommendedDoctorId && data.recommendedSpecialtyId) {
-                        addRecommendationMessage(data);
-                    } else {
-                        addMessage(data.response, 'bot');
-                    }
+                    addMessage(data.response || 'Không nhận được khuyến nghị cụ thể.', 'bot');
                 }
             } else {
-                addMessage('Không thể kết nối tới AI. Vui lòng kiểm tra kết nối.', 'bot');
+                addMessage('Không thể kết nối tới AI. Vui lòng thử lại.', 'bot');
             }
         } catch (error) {
             removeLoadingMessage();
@@ -161,7 +204,7 @@
         const div = document.createElement('div');
         div.className = `message ${sender}`;
         div.innerHTML = `
-            <div class="message-bubble">${text.replace(/\n/g, '<br>')}</div>
+            <div class="message-bubble">${text.replace(/\\n/g, '<br>').replace(/&/g, '&amp;').replace(/</g, '<').replace(/>/g, '>')}</div>
             <div class="message-time">${time}</div>
         `;
         messages.appendChild(div);
@@ -210,6 +253,5 @@
     } else {
         init();
     }
-
 })();
 

@@ -181,8 +181,9 @@ Triệu chứng bệnh nhân (có thể nhiều): {userMessage}
                         }
                         catch (JsonException)
                         {
-                            // Fallback to plain text if JSON invalid
-                            response.Response = aiText ?? "Không nhận được phản hồi từ AI.";
+                            // Fallback to plain text if JSON invalid - professional prefix
+                            response.Response = $"🤖 Dựa trên triệu chứng của bạn: {aiText ?? "Không nhận được phản hồi từ AI."}";
+
                         }
                     }
                     else
