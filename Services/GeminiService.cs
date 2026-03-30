@@ -63,7 +63,7 @@ namespace ClinicBookingMVC.Services
                     $"**{kvp.Key}:**\n" + string.Join("\n", kvp.Value.Select(d => $"  - ID:{d.DoctorId} {d.FullName} ({d.ExperienceYears} năm, {d.ConsultationFee:##,###}đ)"))
                 ));
 
-                var prompt = $@"Bạn là trợ lý y tế thông minh cho ClinicAppointment. Dựa trên triệu chứng, KHÔU CHỌN BÁC SĨ THỰC TẾ từ danh sách sau:
+                var prompt = $@"Bạn là trợ lý y tế thông minh cho ClinicAppointment. Dựa trên triệu chứng, CHỌN BÁC SĨ THỰC TẾ từ danh sách sau:
 
 **Chuyên khoa có sẵn:**
 {specialtyList}
@@ -71,13 +71,9 @@ namespace ClinicBookingMVC.Services
 **Bác sĩ theo chuyên khoa:**
 {doctorList}
 
-Triệu chứng bệnh nhân (có thể nhiều): {userMessage}
+Triệu chứng bệnh nhân: {userMessage}
 
-✅ NHỮNG GÌ BẠN PHẢI LÀM:
-1. Phân tích TẤT CẢ triệu chứng (dù nhiều)
-2. Chọn CHÍNH XÁC 1 chuyên khoa phù hợp NHẤT 
-3. Chọn 1 BÁC SĨ CỤ THỂ từ danh sách (ưu tiên kinh nghiệm cao)
-4. TRẢ LỜI ĐÚNG ĐỊNH DẠNG JSON duy nhất:
+✅ TRẢ LỜI CHỈ JSON thuần túy, KHÔNG text thêm nào khác!
 
 {{
   ""specialtyId"": [ID số],
@@ -88,7 +84,7 @@ Triệu chứng bệnh nhân (có thể nhiều): {userMessage}
   ""response"": ""Tin nhắn thân thiện cho bệnh nhân (tiếng Việt)""
 }}
 
-⚠️ CHỈ trả JSON, không text khác. Không chẩn đoán y tế!";
+⚠️ JSON THUẨN TÚY, KHÔNG text trước/sau. Không chẩn đoán y tế!";
 
                 var requestBody = new
                 {
@@ -147,12 +143,21 @@ Triệu chứng bệnh nhân (có thể nhiều): {userMessage}
 
                     if (jsonDoc != null && jsonDoc["candidates"]?.AsArray()?[0]?["content"]?["parts"]?.AsArray()?[0]?["text"] is JsonValue textNode)
                     {
-                        var aiText = textNode.GetValue<string>()?.Trim();
+                        var aiText = textNode.GetValue<string>()?.Trim() ?? "";
                         
+                        string parseText = aiText;
+
+                        // Robust JSON extraction: find first complete JSON object in text
+                        var jsonMatch = System.Text.RegularExpressions.Regex.Match(aiText, @"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}");
+                        if (jsonMatch.Success)
+                        {
+                            parseText = jsonMatch.Value;
+                        }
+
                         // Try parse JSON recommendation from AI response
                         try
                         {
-                            using var doc = JsonDocument.Parse(aiText);
+                            using var doc = JsonDocument.Parse(parseText);
                             var root = doc.RootElement;
                             
                             response.RecommendedSpecialtyId = root.TryGetProperty("specialtyId", out var spId) ? spId.GetInt32() : null;
@@ -160,7 +165,7 @@ Triệu chứng bệnh nhân (có thể nhiều): {userMessage}
                             response.RecommendedDoctorId = root.TryGetProperty("doctorId", out var docId) ? docId.GetInt32() : null;
                             response.RecommendedDoctorName = root.TryGetProperty("doctorName", out var docName) ? docName.GetString() ?? "" : "";
                             response.RecommendationReason = root.TryGetProperty("reason", out var reason) ? reason.GetString() ?? "" : "";
-                            response.Response = root.TryGetProperty("response", out var resp) ? resp.GetString() ?? aiText : aiText;
+                            response.Response = root.TryGetProperty("response", out var resp) ? resp.GetString() ?? parseText : parseText;
                             
                             // Populate available doctors for recommended specialty
                             if (response.RecommendedSpecialtyId.HasValue)
@@ -181,8 +186,8 @@ Triệu chứng bệnh nhân (có thể nhiều): {userMessage}
                         }
                         catch (JsonException)
                         {
-                            // Fallback to plain text if JSON invalid - professional prefix
-                            response.Response = $"🤖 Dựa trên triệu chứng của bạn: {aiText ?? "Không nhận được phản hồi từ AI."}";
+                            // Clean fallback - no raw text exposure
+                            response.Response = "🤖 Tôi đã phân tích triệu chứng của bạn nhưng chưa thể đưa ra khuyến nghị cụ thể. Hãy mô tả thêm chi tiết hoặc thử triệu chứng khác nhé! 😊";
 
                         }
                     }
