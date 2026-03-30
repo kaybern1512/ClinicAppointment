@@ -175,5 +175,23 @@ namespace ClinicBookingMVC.Controllers
             TempData["SuccessMessage"] = "Xóa người dùng thành công.";
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ToggleActive(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy người dùng." });
+            }
+
+            user.IsActive = !user.IsActive;
+            await _context.SaveChangesAsync();
+
+            var message = user.IsActive ? "Kích hoạt tài khoản thành công." : "Khóa tài khoản thành công.";
+            TempData["SuccessMessage"] = message;
+
+            return Json(new { success = true, isActive = user.IsActive, message = message });
+        }
     }
 }

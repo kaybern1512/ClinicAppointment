@@ -1,0 +1,52 @@
+@model ClinicBookingMVC.ViewModels.Admin.AdminUserEditViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Chỉnh sửa người dùng";
+}
+
+<div class="admin-form-card">
+    <h4 class="mb-4"><i class="bi bi-pencil-square me-2"></i>Chỉnh sửa thông tin người dùng</h4>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="UserId" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="PhoneNumber" class="form-label"></label>
+                <input asp-for="PhoneNumber" class="form-control" />
+                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="RoleId" class="form-label">Vai trò</label>
+                <select asp-for="RoleId" class="form-select" asp-items="Model.Roles">
+                    <option value="">Chọn vai trò</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Trạng thái hoạt động</label>
+                <div class="form-check mt-2">
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                    <label asp-for="IsActive" class="form-check-label">Tài khoản đang hoạt động</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-2"></i>Lưu thay đổi
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary ms-2">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

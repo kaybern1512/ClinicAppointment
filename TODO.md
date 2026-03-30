@@ -1,29 +1,13 @@
-# TODO: Implement Người 3 Admin Features
+# Admin Dashboard Improvements - Toggle IsActive & Styling
 
-## Progress
-- [x] Step 1: Add Delete actions to AdminDoctorsController (GET/POST soft-delete)
-- [x] Step 2: Add Delete actions to AdminSpecialtiesController (check deps)
-- [x] Step 3: Add Edit actions to AdminUsersController (name/phone/role/active)
-- [x] Step 4: Add Delete actions to AdminUsersController (soft)
-- [x] Step 5: Verify/create ViewModels if needed (AdminUserEditViewModel)
-- [ ] Step 6: Test all CRUD via browser (admin login)
-- [ ] Step 7: Update report notes
+## Steps:
+- [x] 1. Add ToggleActive POST action to AdminUsersController.cs
+- [x] 2. Update Views/AdminUsers/Index.cshtml - add toggle button in table
+- [x] 3. Update Views/AdminUsers/Details.cshtml - add toggle button
+- [x] 4. Create missing Views/AdminUsers/Edit.cshtml
+- [x] 5. Enhance wwwroot/css/admin.css - toggle button styles
+- [ ] 6. Polish AdminDashboard/Index.cshtml styling (optional)
+- [ ] 7. Test toggles, dashboard access, responsive design
+- [ ] 8. Complete
 
-## Complete!
-
-All features implemented:
-- Dashboard: Stats ✅
-- Doctors CRUD ✅
-- Specialties CRUD ✅
-- Users list/edit/delete ✅
-
-**Test:** 
-1. dotnet run
-2. Login admin
-3. /AdminDashboard - check stats
-4. /AdminDoctors - CRUD test
-5. /AdminSpecialties - CRUD (dep check)
-6. /AdminUsers - list/edit/delete
-
-No breaking changes to auth.
-
+**Next:** Implementing ToggleActive controller action.

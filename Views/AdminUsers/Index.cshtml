@@ -37,8 +37,16 @@
                         </td>
                         <td>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>
-                            <a asp-action="Details" asp-route-id="@item.UserId" class="btn btn-outline-primary btn-sm">Chi tiết</a>
+                            <a asp-action="Details" asp-route-id="@item.UserId" class="btn btn-outline-primary btn-sm me-1">Chi tiết</a>
+                            <a asp-action="Edit" asp-route-id="@item.UserId" class="btn btn-outline-warning btn-sm me-1">Sửa</a>
+                            <button class="toggle-active-btn btn @(item.IsActive ? "btn-outline-success" : "btn-outline-danger") btn-sm" 
+                                    data-user-id="@item.UserId" 
+                                    data-current-status="@item.IsActive"
+                                    title="@(item.IsActive ? "Khóa tài khoản" : "Kích hoạt tài khoản")">
+                                <i class="bi @(item.IsActive ? "bi-unlock" : "bi-lock")"></i>
+                            </button>
                         </td>
+
                     </tr>
                 }
             </tbody>
