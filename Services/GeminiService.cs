@@ -86,7 +86,7 @@ Important: Respond in Vietnamese. Be concise, professional. Do not give medical 
                 var json = JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var url = $"{_baseUrl}/models/gemini-2.5-flash-exp:generateContent?key={_apiKey}";
+                var url = $"{_baseUrl}/models/gemini-2.5-flash:generateContent?key={_apiKey}";
                 var httpResponse = await _httpClient.PostAsync(url, content);
 
                 if (httpResponse.IsSuccessStatusCode)
