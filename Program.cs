@@ -19,6 +19,8 @@ builder.Services.AddSession(options =>
 builder.Services.AddDbContext<ClinicBookingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Gemini service
+builder.Services.AddHttpClient<ClinicBookingMVC.Services.IGeminiService, ClinicBookingMVC.Services.GeminiService>();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
