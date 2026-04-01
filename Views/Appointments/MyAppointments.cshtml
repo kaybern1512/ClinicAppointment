@@ -1,4 +1,4 @@
-﻿@model IEnumerable<AppointmentListItemViewModel>
+@model IEnumerable<AppointmentListItemViewModel>
 @{
     ViewData["Title"] = "Lịch hẹn của tôi";
 }
@@ -18,6 +18,7 @@
                         <th>Ngày khám</th>
                         <th>Giờ khám</th>
                         <th>Trạng thái</th>
+                        <th>Cọc</th>
                         <th>Thao tác</th>
                     </tr>
                 </thead>
@@ -44,6 +45,20 @@
                             <td>@item.AppointmentTime.ToString(@"hh\:mm")</td>
                             <td>
                                 <span class="@badgeClass">@item.StatusName</span>
+                            </td>
+                            <td>
+                                @if (item.IsDepositPaid)
+                                {
+                                    <span class="badge bg-success">Đã thanh toán</span>
+                                }
+                                else if (item.StatusName != "Cancelled" && item.StatusName != "Completed")
+                                {
+                                    <a asp-controller="Payment" asp-action="CreatePaymentUrl" asp-route-appointmentId="@item.AppointmentId" class="btn btn-sm btn-outline-warning">Thanh toán cọc</a>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Không khả dụng</span>
+                                }
                             </td>
 
                             <td>

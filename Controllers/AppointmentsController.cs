@@ -1,4 +1,4 @@
-﻿using ClinicBookingMVC.Models;
+using ClinicBookingMVC.Models;
 using ClinicBookingMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -373,8 +373,7 @@ namespace ClinicBookingMVC.Controllers
 
                 await transaction.CommitAsync();
 
-                TempData["SuccessMessage"] = "Đặt lịch thành công.";
-                return RedirectToAction(nameof(MyAppointments));
+                return RedirectToAction("CreatePaymentUrl", "Payment", new { appointmentId = appointment.AppointmentId });
             }
             catch
             {
@@ -490,6 +489,7 @@ namespace ClinicBookingMVC.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Specialty)
                 .Include(a => a.Status)
+                .Include(a => a.Payments)
                 .Where(a => a.UserPatientId == userId.Value)
                 .OrderByDescending(a => a.AppointmentDate)
                 .ThenByDescending(a => a.AppointmentTime)
@@ -502,7 +502,8 @@ namespace ClinicBookingMVC.Controllers
                     AppointmentDate = a.AppointmentDate,
                     AppointmentTime = a.AppointmentTime,
                     StatusName = a.Status.StatusName,
-                    BookingCode = a.BookingCode
+                    BookingCode = a.BookingCode,
+                    IsDepositPaid = a.Payments.Any(p => p.PaymentStatus == "Success")
                 })
                 .ToListAsync();
 
@@ -524,6 +525,7 @@ namespace ClinicBookingMVC.Controllers
                 .Include(a => a.Doctor)
                 .Include(a => a.Specialty)
                 .Include(a => a.Status)
+                .Include(a => a.Payments)
                 .FirstOrDefaultAsync(a => a.AppointmentId == id && a.UserPatientId == userId.Value);
 
             if (appointment == null)
@@ -544,7 +546,8 @@ namespace ClinicBookingMVC.Controllers
                 Symptoms = appointment.Symptoms,
                 StatusName = appointment.Status.StatusName,
                 BookingCode = appointment.BookingCode,
-                CreatedAt = appointment.CreatedAt
+                CreatedAt = appointment.CreatedAt,
+                IsDepositPaid = appointment.Payments.Any(p => p.PaymentStatus == "Success")
             };
 
             return View(model);

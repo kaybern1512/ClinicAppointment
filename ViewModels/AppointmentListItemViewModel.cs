@@ -1,4 +1,4 @@
-﻿namespace ClinicBookingMVC.ViewModels
+namespace ClinicBookingMVC.ViewModels
 {
     public class AppointmentListItemViewModel
     {
@@ -11,5 +11,6 @@
         public TimeOnly AppointmentTime { get; set; }
         public string StatusName { get; set; } = string.Empty;
         public string BookingCode { get; set; } = string.Empty;
+        public bool IsDepositPaid { get; set; }
     }
 }

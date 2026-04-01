@@ -22,6 +22,10 @@ builder.Services.AddDbContext<ClinicBookingContext>(options =>
 // Gemini service - Scoped for DbContext access
 builder.Services.AddHttpClient<ClinicBookingMVC.Services.IGeminiService, ClinicBookingMVC.Services.GeminiService>();
 builder.Services.AddScoped<ClinicBookingMVC.Services.IGeminiService, ClinicBookingMVC.Services.GeminiService>();
+
+// VnPay service
+builder.Services.AddScoped<ClinicBookingMVC.Services.IVnPayService, ClinicBookingMVC.Services.VnPayService>();
+
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();

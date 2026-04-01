@@ -1,4 +1,4 @@
-﻿@model AppointmentDetailsViewModel
+@model AppointmentDetailsViewModel
 @{
     ViewData["Title"] = "Chi tiết lịch hẹn";
 }
@@ -17,7 +17,22 @@
             <div class="col-md-6"><strong>Ngày khám:</strong> @Model.AppointmentDate.ToString("dd/MM/yyyy")</div>
             <div class="col-md-6"><strong>Giờ khám:</strong> @Model.AppointmentTime.ToString(@"hh\:mm")</div>
             <div class="col-md-6"><strong>Trạng thái:</strong> @Model.StatusName</div>
-            <div class="col-12"><strong>Triệu chứng:</strong> @Model.Symptoms</div>
+            <div class="col-md-6">
+                <strong>Thanh toán cọc:</strong> 
+                @if (Model.IsDepositPaid)
+                {
+                    <span class="badge bg-success">Đã thanh toán</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark">Chưa thanh toán</span>
+                    @if (Model.StatusName != "Cancelled" && Model.StatusName != "Completed")
+                    {
+                        <a asp-controller="Payment" asp-action="CreatePaymentUrl" asp-route-appointmentId="@Model.AppointmentId" class="btn btn-sm btn-outline-warning ms-2">Thanh toán ngay</a>
+                    }
+                }
+            </div>
+            <div class="col-12 mt-3"><strong>Triệu chứng:</strong> @Model.Symptoms</div>
         </div>
 
         <div class="mt-4">
